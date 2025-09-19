@@ -1,0 +1,150 @@
+use http::{Extensions, HeaderMap, StatusCode};
+use reqwest::{Request, Response};
+use reqwest_middleware as rqm;
+use std::sync::Arc;
+use awesome402::proto::client::{
+    FirstMatch, HttpTransport, PaymentCandidate, PaymentSelector, X402Error, X402SchemeClient,
+};
+
+use crate::http_transport::HttpPaymentRequired;
+
+/// The main x402 client that orchestrates scheme clients and selection.
+pub struct Awesome402Client<TSelector> {
+    schemes: ClientSchemes,
+    selector: TSelector,
+}
+
+impl Awesome402Client<FirstMatch> {
+    pub fn new() -> Self {
+        Self::default()
+    }
+}
+
+impl Default for Awesome402Client<FirstMatch> {
+    fn default() -> Self {
+        Self {
+            schemes: ClientSchemes::default(),
+            selector: FirstMatch,
+        }
+    }
+}
+
+impl<TSelector> Awesome402Client<TSelector> {
+    /// Register a scheme client for specific chains.
+    ///
+    /// # Arguments
+    /// * `pattern` - Chain pattern to match (can be exact, wildcard, or set)
+    /// * `scheme` - The scheme client implementation
+    ///
+    /// # Examples
+    /// ```rust,ignore
+    /// // Register for all EIP-155 chains
+    /// let client = Awesome402Client::new()
+    ///     .register(ChainIdPattern::wildcard("eip155".into()), V2Eip155ExactClient::new(signer));
+    ///
+    /// // Register for specific chain
+    /// let client = Awesome402Client::new()
+    ///     .register(ChainId::new("eip155", "84532"), V2Eip155ExactClient::new(signer));
+    ///
+    /// // Register for multiple chains using pattern parsing
+    /// let client = Awesome402Client::new()
+    ///     .register("eip155:{1,8453,84532}".parse::<ChainIdPattern>().unwrap(), V2Eip155ExactClient::new(signer));
+    /// ```
+    pub fn register<S>(mut self, scheme: S) -> Self
+    where
+        S: X402SchemeClient + 'static,
+    {
+        self.schemes.push(scheme);
+        self
+    }
+
+    /// Set a custom payment selector.
+    #[allow(dead_code)]
+    pub fn with_selector<P: PaymentSelector + 'static>(self, selector: P) -> Awesome402Client<P> {
+        Awesome402Client {
+            selector,
+            schemes: self.schemes,
+        }
+    }
+}
+
+impl<TSelector> Awesome402Client<TSelector>
+where
+    TSelector: PaymentSelector,
+{
+    pub async fn make_payment_headers(&self, res: Response) -> Result<HeaderMap, X402Error> {
+        let payment_quote = HttpPaymentRequired::from_response(res)
+            .await
+            .ok_or(X402Error::ParseError("Invalid 402 response".to_string()))?;
+        let candidates = self.schemes.candidates(&payment_quote);
+
+        // Select the best candidate
+        let selected = self
+            .selector
+            .select(&candidates)
+            .ok_or(X402Error::NoMatchingPaymentOption)?;
+
+        let signed_payload = selected.sign().await?;
+        let header_name = match payment_quote.inner() {
+            HttpTransport::V1(_) => "X-Payment",
+            HttpTransport::V2(_) => "Payment-Signature",
+        };
+        let headers = {
+            let mut headers = HeaderMap::new();
+            headers.insert(header_name, signed_payload.parse().unwrap());
+            headers
+        };
+
+        Ok(headers)
+    }
+}
+
+#[derive(Default)]
+pub struct ClientSchemes(Vec<Arc<dyn X402SchemeClient>>);
+
+impl ClientSchemes {
+    pub fn push<T: X402SchemeClient + 'static>(&mut self, client: T) {
+        self.0.push(Arc::new(client));
+    }
+
+    pub fn candidates(&self, payment_quote: &HttpPaymentRequired) -> Vec<PaymentCandidate> {
+        let mut candidates = vec![];
+        for client in self.0.iter() {
+            let req = payment_quote.as_payment_required();
+            let accepted = client.accept(req);
+            candidates.extend(accepted);
+        }
+        candidates
+    }
+}
+
+#[async_trait::async_trait]
+impl<TSelector> rqm::Middleware for Awesome402Client<TSelector>
+where
+    TSelector: PaymentSelector + Send + Sync + 'static,
+{
+    async fn handle(
+        &self,
+        req: Request,
+        extensions: &mut Extensions,
+        next: rqm::Next<'_>,
+    ) -> rqm::Result<Response> {
+        let retry_req = req.try_clone();
+        let res = next.clone().run(req, extensions).await?;
+        if res.status() != StatusCode::PAYMENT_REQUIRED {
+            return Ok(res);
+        }
+
+        let headers = self
+            .make_payment_headers(res)
+            .await
+            .map_err(|e| rqm::Error::Middleware(e.into()))?;
+
+        // Retry with payment
+        let mut retry = retry_req.ok_or(rqm::Error::Middleware(
+            X402Error::RequestNotCloneable.into(),
+        ))?;
+        retry.headers_mut().extend(headers);
+        next.run(retry, extensions).await
+    }
+}
