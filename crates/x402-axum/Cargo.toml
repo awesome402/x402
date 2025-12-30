@@ -1,14 +1,11 @@
 [package]
-name = "awesome402-axum"
+name = "x402-axum"
 version = "0.6.3"
 edition = "2024"
-description = "Axum middleware for enforcing awesome402 protocol payments on protected routes"
-license = "Apache-2.0"
-authors = ["Sergey Ukustov <sergey@ukstv.me>"]
-repository = "https://github.com/awesome402/awesome402"
-homepage = "https://awesome402.rs"
-documentation = "https://docs.rs/awesome402-axum"
-keywords = ["axum", "middleware", "awesome402", "payments", "stablecoin"]
+description = "Axum middleware for enforcing x402 protocol payments on protected routes"
+license = "MIT"
+repository = "https://github.com/awesome402/x402"
+keywords = ["axum", "middleware", "x402", "payments", "stablecoin"]
 categories = ["web-programming::http-server", "authentication", "cryptography", "finance", "network-programming"]
 readme = "README.md"
 
@@ -32,4 +29,4 @@ axum = { version = "0.8.4" }
 
 [features]
 default = []
-telemetry = ["dep:tracing", "awesome402/telemetry"]
+telemetry = ["dep:tracing", "x402/telemetry"]

@@ -1,14 +1,11 @@
 [package]
 name = "awesome402"
 version = "0.11.0"
-authors = ["Sergey Ukustov <sergey@ukstv.me>"]
-edition = "2024"
-license = "Apache-2.0"
-repository = "https://github.com/awesome402/awesome402"
-description = "awesome402 payments in Rust: verify, settle, and monitor payments over HTTP 402 flows"
+edition = "2025"
+license = "MIT"
+repository = "https://github.com/awesome402/x402"
+description = "x402 payments in Rust: verify, settle, and monitor payments over HTTP 402 flows"
 readme = "README.md"
-homepage = "https://awesome402.rs"
-documentation = "https://docs.rs/awesome402"
 keywords = ["blockchain", "payments", "awesome402", "stablecoin", "http-402"]
 categories = ["cryptography", "finance", "network-programming", "web-programming::http-server"]
 
@@ -76,9 +73,9 @@ telemetry = []
 
 [workspace]
 members = [
-  "crates/awesome402-axum",
-  "examples/awesome402-axum-example",
-  "crates/awesome402-reqwest",
-  "examples/awesome402-reqwest-example",
+  "crates/x402-axum",
+  "examples/x402-axum-example",
+  "crates/x402-reqwest",
+  "examples/x402-reqwest-example",
   "."
 ]

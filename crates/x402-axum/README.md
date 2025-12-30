@@ -1,14 +1,5 @@
 # x402-axum
 
-[![Crates.io](https://img.shields.io/crates/v/x402-axum.svg)](https://crates.io/crates/x402-axum)
-[![Docs.rs](https://docs.rs/x402-axum/badge.svg)](https://docs.rs/x402-axum)
-
-<div align="center">
-<table><tr><td>
-🔧 <strong>Protocol v2 Update Coming</strong> — This crate is being updated to support x402 protocol v2 with the new multi-chain, multi-scheme architecture. The update is on its way! For v1 support, see the <code>protocol-x402-v1</code> branch.
-</td></tr></table>
-</div>
-
 Axum middleware for protecting routes with [x402 protocol](https://www.x402.org) payments.
 
 This crate provides a drop-in `tower::Layer` that intercepts incoming requests,
@@ -24,7 +15,6 @@ If no valid payment is provided, a `402 Payment Required` response is returned w
 - Enforces on-chain payment verification before executing protected handlers
 - Configurable settlement timing (before or after request execution)
 - Returns standards-compliant `402 Payment Required` responses
-- Emits rich tracing spans with optional OpenTelemetry integration (`telemetry` feature)
 - Compatible with any x402 facilitator (remote or in-process)
 
 ## Installation
@@ -34,10 +24,6 @@ Add to your `Cargo.toml`:
 x402-axum = "0.6"
 ```
 
-If you want to enable tracing and OpenTelemetry support, use the telemetry feature (make sure to register a tracing subscriber in your application):
-```toml
-x402-axum = { version = "0.6", features = ["telemetry"] }
-```
 
 ## Specifying Prices
 
@@ -304,25 +290,6 @@ The combined input and output schemas are automatically embedded in `PaymentRequ
 }
 ```
 
-## Optional Telemetry
-
-If the `telemetry` feature is enabled, the middleware emits structured tracing spans such as:
-- `x402.handle_request`,
-- `x402.verify_payment`,
-- `x402.settle_payment`,
-
-You can connect these to OpenTelemetry exporters like Jaeger, Tempo, or Otel Collector.
-
-To enable:
-
-```toml
-[dependencies]
-x402-axum = { version = "0.6", features = ["telemetry"] }
-```
-
-## Related Crates	
-- [x402](https://crates.io/crates/x402): Core x402 types, facilitator traits, helpers.
-
 ## License
 
-[Apache-2.0](LICENSE)
+[MIT](LICENSE)

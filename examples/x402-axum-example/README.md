@@ -36,7 +36,7 @@ This example shows how to:
 ## Try It
 
 ```bash
-git clone https://github.com/awesome402/awesome402 awesome402
+git clone https://github.com/awesome402/x402 awesome402
 cd awesome402/examples/awesome402-axum-example
 cargo run
 ```
@@ -156,4 +156,4 @@ These can be visualized in tools like Jaeger, Tempo, or Grafana.
 
 ## License
 
-[Apache-2.0](LICENSE)
+[MIT](LICENSE)

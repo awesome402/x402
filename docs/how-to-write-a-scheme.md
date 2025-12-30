@@ -1,6 +1,6 @@
-# How to Write a Scheme for awesome402-rs
+# How to Write a Scheme for Awesome402
 
-This guide explains how to create a custom payment scheme for the awesome402-rs facilitator.
+This guide explains how to create a custom payment scheme for the Awesome402 facilitator.
 
 ## What is a Scheme?
 
@@ -372,9 +372,9 @@ The `chains` field supports several patterns:
 | `solana:*` | All Solana chains |
 | `eip155:{1,8453}` | Specific chain references |
 
-## Contributing to Upstream awesome402-rs
+## Contributing to Upstream Awesome402
 
-If you want your scheme included in the default awesome402-rs distribution:
+If you want your scheme included in the default Awesome402 distribution:
 
 1. Create module structure under `src/scheme/v2_solana_myscheme/`
 2. Add module declaration in `src/scheme/mod.rs`:

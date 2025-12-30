@@ -1,33 +1,23 @@
-# awesome402-reqwest
-
-[![Crates.io](https://img.shields.io/crates/v/awesome402-reqwest.svg)](https://crates.io/crates/awesome402-reqwest)
-[![Docs.rs](https://docs.rs/awesome402-reqwest/badge.svg)](https://docs.rs/awesome402-reqwest)
-
-<div align="center">
-<table><tr><td>
-🔧 <strong>Protocol v2 Update Coming</strong> — This crate is being updated to support awesome402 protocol v2 with the new multi-chain, multi-scheme architecture. The update is on its way! For v1 support, see the <code>protocol-awesome402-v1</code> branch.
-</td></tr></table>
-</div>
+# x402-reqwest
 
 **Wrapper around [`reqwest`](https://crates.io/crates/reqwest) that transparently handles HTTP `402 Payment Required` responses using the [awesome402 protocol](https://awesome402.org/).**
 
-This crate enables your [`reqwest`](https://crates.io/crates/reqwest) or [`reqwest-middleware`](https://crates.io/crates/reqwest-middleware)-based HTTP clients to:
+This crate enables your [`reqwest-middleware`](https://crates.io/crates/reqwest-middleware)-based HTTP clients to:
 - Detect `402 Payment Required` responses
-- Build and sign [x402](https://awesome402.org) payment payloads
+- Build and sign [x402](https://x402.org) payment payloads
 - Retry the request with the `X-Payment` header attached
 - Respect client-defined preferences like token priority and per-token payment caps
 
 All in all: **automatically pay for resources using the awesome402 protocol**.
 
-Built with [`reqwest-middleware`](https://crates.io/crates/reqwest-middleware) and compatible with any [`alloy::Signer`](https://alloy.rs).
+Built with [`reqwest-middleware`] and compatible with any [`alloy::Signer`](https://alloy.rs).
 
 ## Features
 
-- Pluggable [`reqwest`](https://crates.io/crates/reqwest) middleware
+- Pluggable middleware
 - EIP-712-compatible signing with [`alloy`](https://alloy.rs)
 - Fluent builder-style configuration
 - Token preferences & per-asset payment limits
-- Tracing support (opt-in via `telemetry` feature)
 
 ## Installation
 
@@ -72,8 +62,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 }
 ```
 
-See more examples on [docs.rs](https://docs.rs/awesome402-reqwest)
-
 ## How it works
 1.	A 402 Payment Required is received from a server.
 2.	The middleware parses the Payment-Required response body.
@@ -82,18 +70,6 @@ See more examples on [docs.rs](https://docs.rs/awesome402-reqwest)
 5.	The payload is base64-encoded into an `X-Payment` header.
 6.	The request is retried, now with the payment inside the header.
 
-## Optional Features
-- `telemetry`: Enables tracing annotations for richer observability.
-
-Enable it via:
-```toml
-awesome402-reqwest = { version = "0.4", features = ["telemetry"] }
-```
-
-## Related Crates
-- [awesome402](https://crates.io/crates/awesome402): Core x402 types, facilitator traits, helpers.
-- [awesome402-axum](https://crates.io/crates/awesome402): Axum middleware for accepting x402 payments.
-
 ## License
 
-[Apache-2.0](LICENSE)
+[MIT](LICENSE)

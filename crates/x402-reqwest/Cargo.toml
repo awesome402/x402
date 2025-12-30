@@ -1,19 +1,16 @@
 [package]
-name = "awesome402-reqwest"
+name = "x402-reqwest"
 version = "0.4.1"
 edition = "2024"
-description = "Wrapper for reqwest for transparent awesome402 payments"
-license = "Apache-2.0"
-authors = ["Sergey Ukustov <sergey@ukstv.me>"]
-repository = "https://github.com/awesome402/awesome402"
-homepage = "https://awesome402.rs"
-documentation = "https://docs.rs/awesome402-reqwest"
-keywords = ["axum", "middleware", "awesome402", "payments", "stablecoin"]
+description = "Wrapper for reqwest for transparent x402 payments"
+license = "MIT"
+repository = "https://github.com/awesome402/x402"
+keywords = ["axum", "middleware", "x402", "payments", "stablecoin"]
 categories = ["web-programming::http-client", "authentication", "cryptography", "finance", "network-programming"]
 readme = "README.md"
 
 [dependencies]
-awesome402 = { version = "0.11", default-features = false }
+x402 = { version = "0.11", default-features = false }
 reqwest = { version = "0.12.15" }
 http = { version = "1.4.0" }
 reqwest-middleware = { version = "0.4.2" }
@@ -49,4 +46,4 @@ solana-keypair = { version = "3.1.0" }
 tracing = { version = "0.1.41" }
 
 [features]
-telemetry = ["awesome402/telemetry"]
+telemetry = ["x402/telemetry"]

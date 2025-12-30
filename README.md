@@ -308,4 +308,4 @@ Feel free to open issues or pull requests to improve Awesome402 in the Rust ecos
 
 ## License
 
-[Apache-2.0](LICENSE)
+[MIT](LICENSE)
