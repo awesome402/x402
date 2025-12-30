@@ -1,15 +1,15 @@
-# awesome402-axum
+# x402-axum
 
-[![Crates.io](https://img.shields.io/crates/v/awesome402-axum.svg)](https://crates.io/crates/awesome402-axum)
-[![Docs.rs](https://docs.rs/awesome402-axum/badge.svg)](https://docs.rs/awesome402-axum)
+[![Crates.io](https://img.shields.io/crates/v/x402-axum.svg)](https://crates.io/crates/x402-axum)
+[![Docs.rs](https://docs.rs/x402-axum/badge.svg)](https://docs.rs/x402-axum)
 
 <div align="center">
 <table><tr><td>
-🔧 <strong>Protocol v2 Update Coming</strong> — This crate is being updated to support awesome402 protocol v2 with the new multi-chain, multi-scheme architecture. The update is on its way! For v1 support, see the <code>protocol-awesome402-v1</code> branch.
+🔧 <strong>Protocol v2 Update Coming</strong> — This crate is being updated to support x402 protocol v2 with the new multi-chain, multi-scheme architecture. The update is on its way! For v1 support, see the <code>protocol-x402-v1</code> branch.
 </td></tr></table>
 </div>
 
-Axum middleware for protecting routes with [awesome402 protocol](https://www.awesome402.org) payments.
+Axum middleware for protecting routes with [x402 protocol](https://www.x402.org) payments.
 
 This crate provides a drop-in `tower::Layer` that intercepts incoming requests,
 validates `X-Payment` headers using a configured x402 facilitator,
@@ -31,12 +31,12 @@ If no valid payment is provided, a `402 Payment Required` response is returned w
 Add to your `Cargo.toml`:
 
 ```toml
-awesome402-axum = "0.6"
+x402-axum = "0.6"
 ```
 
 If you want to enable tracing and OpenTelemetry support, use the telemetry feature (make sure to register a tracing subscriber in your application):
 ```toml
-awesome402-axum = { version = "0.6", features = ["telemetry"] }
+x402-axum = { version = "0.6", features = ["telemetry"] }
 ```
 
 ## Specifying Prices
@@ -56,8 +56,8 @@ You can construct `PriceTag`s directly or use fluent builder helpers that simpli
 If you're integrating a custom token, define it using `TokenDeployment`. This includes token address, decimals, the network it lives on, and EIP-712 metadata (name/version):
 
 ```rust
-use awesome402::types::{TokenAsset, TokenDeployment, EvmAddress, TokenAssetEip712};
-use awesome402::network::Network;
+use x402::types::{TokenAsset, TokenDeployment, EvmAddress, TokenAssetEip712};
+use x402::network::Network;
 
 let asset = TokenDeployment {
     asset: TokenAsset {
@@ -77,7 +77,7 @@ let asset = TokenDeployment {
 For common stablecoins like USDC, you can use the convenience struct `USDCDeployment`:
 
 ```rust
-use awesome402::network::{Network, USDCDeployment};
+use x402::network::{Network, USDCDeployment};
 
 let asset = USDCDeployment::by_network(Network::BaseSepolia);
 ```
@@ -116,7 +116,7 @@ let price_tag = usdc.amount(0.025).pay_to("0xYourAddress").unwrap();
 Once you’ve created your PriceTag, pass it to the middleware:
 
 ```rust
-let x402 = Awesome402Middleware::try_from("https://awesome402.org/facilitator/").unwrap();
+let x402 = X402Middleware::try_from("https://x402.org/facilitator/").unwrap();
 let usdc = USDCDeployment::by_network(Network::BaseSepolia);
 
 let app = Router::new().route("/paid-content", get(handler).layer( 
@@ -131,7 +131,7 @@ let app = Router::new().route("/paid-content", get(handler).layer(
 You can extract shared fields like the payment recipient, then vary prices per route:
 
 ```rust
-let x402 = Awesome402Middleware::try_from("https://awesome402.org/facilitator/").unwrap();
+let x402 = X402Middleware::try_from("https://x402.org/facilitator/").unwrap();
 let asset = USDCDeployment::by_network(Network::BaseSepolia)
     .pay_to("0xYourAddress"); // Both /vip-content and /extra-vip-content are paid to 0xYourAddress
 
@@ -151,7 +151,7 @@ let app: Router = Router::new()
 By default, the middleware settles payments **after** request execution. You can control this behavior with `settle_before_execution`.
 
 ```rust
-let x402 = Awesome402Middleware::try_from("https://awesome402.org/facilitator/").unwrap()
+let x402 = X402Middleware::try_from("https://x402.org/facilitator/").unwrap()
     .settle_before_execution();
 ```
 
@@ -164,15 +164,15 @@ This is useful when you want to:
 
 ```rust
 use axum::{Router, routing::get, Json};
-use x402_axum::Awesome402Middleware;
+use x402_axum::X402Middleware;
 use x402_axum::price::IntoPriceTag;
-use awesome402::network::{Network, USDCDeployment};
+use x402::network::{Network, USDCDeployment};
 use http::StatusCode;
 use serde_json::json;
 
 #[tokio::main]
 async fn main() {
-  let x402 = Awesome402Middleware::try_from("https://awesome402.org/facilitator/").unwrap();
+  let x402 = X402Middleware::try_from("https://x402.org/facilitator/").unwrap();
   let usdc = USDCDeployment::by_network(Network::BaseSepolia)
     .pay_to("0xYourAddress");
 
@@ -223,7 +223,7 @@ The input schema describes the expected request format, including HTTP method, q
 ```rust
 use serde_json::json;
 
-let x402 = Awesome402Middleware::try_from("https://awesome402.org/facilitator/").unwrap();
+let x402 = X402Middleware::try_from("https://x402.org/facilitator/").unwrap();
 
 let app = Router::new().route(
     "/api/weather",
@@ -317,11 +317,11 @@ To enable:
 
 ```toml
 [dependencies]
-awesome402-axum = { version = "0.6", features = ["telemetry"] }
+x402-axum = { version = "0.6", features = ["telemetry"] }
 ```
 
 ## Related Crates	
-- [awesome402](https://crates.io/crates/awesome402): Core x402 types, facilitator traits, helpers.
+- [x402](https://crates.io/crates/x402): Core x402 types, facilitator traits, helpers.
 
 ## License
 

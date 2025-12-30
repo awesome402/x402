@@ -9,10 +9,10 @@ use std::env;
 use tower_http::trace::TraceLayer;
 use tracing::instrument;
 use tracing_opentelemetry::OpenTelemetrySpanExt;
-use awesome402_axum::{IntoPriceTag, Awesome402Middleware};
-use awesome402::network::{Network, USDCDeployment};
-use awesome402::telemetry::Telemetry;
-use awesome402::{address_evm, address_sol};
+use x402_axum::{IntoPriceTag, X402Middleware};
+use x402::network::{Network, USDCDeployment};
+use x402::telemetry::Telemetry;
+use x402::{address_evm, address_sol};
 
 #[tokio::main]
 async fn main() {
@@ -24,9 +24,9 @@ async fn main() {
         .register();
 
     let facilitator_url =
-        env::var("FACILITATOR_URL").unwrap_or_else(|_| "https://facilitator.awesome402.rs".to_string());
+        env::var("FACILITATOR_URL").unwrap_or_else(|_| "https://facilitator.x402.rs".to_string());
 
-    let x402 = Awesome402Middleware::try_from(facilitator_url)
+    let x402 = X402Middleware::try_from(facilitator_url)
         .unwrap()
         .with_base_url(url::Url::parse("https://localhost:3000/").unwrap());
     let usdc_base_sepolia = USDCDeployment::by_network(Network::BaseSepolia)

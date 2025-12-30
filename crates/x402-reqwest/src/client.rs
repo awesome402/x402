@@ -2,25 +2,25 @@ use http::{Extensions, HeaderMap, StatusCode};
 use reqwest::{Request, Response};
 use reqwest_middleware as rqm;
 use std::sync::Arc;
-use awesome402::proto::client::{
+use x402::proto::client::{
     FirstMatch, HttpTransport, PaymentCandidate, PaymentSelector, X402Error, X402SchemeClient,
 };
 
 use crate::http_transport::HttpPaymentRequired;
 
 /// The main x402 client that orchestrates scheme clients and selection.
-pub struct Awesome402Client<TSelector> {
+pub struct X402Client<TSelector> {
     schemes: ClientSchemes,
     selector: TSelector,
 }
 
-impl Awesome402Client<FirstMatch> {
+impl X402Client<FirstMatch> {
     pub fn new() -> Self {
         Self::default()
     }
 }
 
-impl Default for Awesome402Client<FirstMatch> {
+impl Default for X402Client<FirstMatch> {
     fn default() -> Self {
         Self {
             schemes: ClientSchemes::default(),
@@ -29,7 +29,7 @@ impl Default for Awesome402Client<FirstMatch> {
     }
 }
 
-impl<TSelector> Awesome402Client<TSelector> {
+impl<TSelector> X402Client<TSelector> {
     /// Register a scheme client for specific chains.
     ///
     /// # Arguments
@@ -39,15 +39,15 @@ impl<TSelector> Awesome402Client<TSelector> {
     /// # Examples
     /// ```rust,ignore
     /// // Register for all EIP-155 chains
-    /// let client = Awesome402Client::new()
+    /// let client = X402Client::new()
     ///     .register(ChainIdPattern::wildcard("eip155".into()), V2Eip155ExactClient::new(signer));
     ///
     /// // Register for specific chain
-    /// let client = Awesome402Client::new()
+    /// let client = X402Client::new()
     ///     .register(ChainId::new("eip155", "84532"), V2Eip155ExactClient::new(signer));
     ///
     /// // Register for multiple chains using pattern parsing
-    /// let client = Awesome402Client::new()
+    /// let client = X402Client::new()
     ///     .register("eip155:{1,8453,84532}".parse::<ChainIdPattern>().unwrap(), V2Eip155ExactClient::new(signer));
     /// ```
     pub fn register<S>(mut self, scheme: S) -> Self
@@ -60,15 +60,15 @@ impl<TSelector> Awesome402Client<TSelector> {
 
     /// Set a custom payment selector.
     #[allow(dead_code)]
-    pub fn with_selector<P: PaymentSelector + 'static>(self, selector: P) -> Awesome402Client<P> {
-        Awesome402Client {
+    pub fn with_selector<P: PaymentSelector + 'static>(self, selector: P) -> X402Client<P> {
+        X402Client {
             selector,
             schemes: self.schemes,
         }
     }
 }
 
-impl<TSelector> Awesome402Client<TSelector>
+impl<TSelector> X402Client<TSelector>
 where
     TSelector: PaymentSelector,
 {
@@ -119,7 +119,7 @@ impl ClientSchemes {
 }
 
 #[async_trait::async_trait]
-impl<TSelector> rqm::Middleware for Awesome402Client<TSelector>
+impl<TSelector> rqm::Middleware for X402Client<TSelector>
 where
     TSelector: PaymentSelector + Send + Sync + 'static,
 {

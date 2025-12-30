@@ -1,7 +1,7 @@
-//! Axum middleware and helpers for enforcing [awesome402](https://www.awesome402.org) payments.
+//! Axum middleware and helpers for enforcing [x402](https://www.x402.org) payments.
 //!
-//! This crate provides an [`Awesome402Middleware`] Axum layer for protecting routes with payment enforcement,
-//! as well as a [`FacilitatorClient`] for communicating with remote awesome402 facilitators.
+//! This crate provides an [`X402Middleware`] Axum layer for protecting routes with payment enforcement,
+//! as well as a [`FacilitatorClient`] for communicating with remote x402 facilitators.
 //!
 //! ## Quickstart
 //!
@@ -10,17 +10,17 @@
 //! use axum::response::IntoResponse;
 //! use http::StatusCode;
 //! use serde_json::json;
-//! use awesome402_axum::{Awesome402Middleware, IntoPriceTag};
-//! use awesome402::network::{Network, USDCDeployment};
+//! use x402_axum::{X402Middleware, IntoPriceTag};
+//! use x402::network::{Network, USDCDeployment};
 //!
-//! let awesome402 = Awesome402Middleware::try_from("https://facilitator.example.com/").unwrap();
+//! let x402 = X402Middleware::try_from("https://facilitator.example.com/").unwrap();
 //! // You can construct `TokenAsset` manually. Here we use known USDC on Base Sepolia
 //! let usdc = USDCDeployment::by_network(Network::BaseSepolia).pay_to("0xADDRESS");
 //!
 //! let app: Router = Router::new().route(
 //!     "/paywall",
 //!     get(my_handler).layer(
-//!         awesome402.with_description("Premium Content")
+//!         x402.with_description("Premium Content")
 //!             .with_price_tag(usdc.amount(0.025).unwrap()),
 //!     ),
 //! );
@@ -29,7 +29,7 @@
 //!     (StatusCode::OK, Json(json!({ "hello": "world" })))
 //! }
 //! ```
-//! See [`Awesome402Middleware`] for full configuration options.
+//! See [`X402Middleware`] for full configuration options.
 //! For low-level interaction with the facilitator, see [`facilitator_client::FacilitatorClient`].
 //!
 //! ## Defining Prices
@@ -42,5 +42,5 @@ pub mod facilitator_client;
 pub mod layer;
 pub mod price;
 
-pub use layer::Awesome402Middleware;
+pub use layer::X402Middleware;
 pub use price::*;

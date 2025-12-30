@@ -1,6 +1,6 @@
-//! Axum middleware for enforcing [awesome402](https://www.awesome402.org) payments on protected routes.
+//! Axum middleware for enforcing [x402](https://www.x402.org) payments on protected routes.
 //!
-//! This middleware validates incoming `X-Payment` headers using a configured awesome402 facilitator,
+//! This middleware validates incoming `X-Payment` headers using a configured x402 facilitator,
 //! and settles valid payments either before or after request execution (configurable).
 //!
 //! Returns a `402 Payment Required` JSON response if the request lacks a valid payment.
@@ -12,18 +12,18 @@
 //! use axum::response::IntoResponse;
 //! use http::StatusCode;
 //! use serde_json::json;
-//! use awesome402::network::{Network, USDCDeployment};
-//! use awesome402_axum::layer::Awesome402Middleware;
-//! use awesome402_axum::price::IntoPriceTag;
+//! use x402::network::{Network, USDCDeployment};
+//! use x402_axum::layer::X402Middleware;
+//! use x402_axum::price::IntoPriceTag;
 //!
-//! let awesome402 = Awesome402Middleware::try_from("https://facilitator.ukstv.me/").unwrap();
+//! let x402 = X402Middleware::try_from("https://facilitator.ukstv.me/").unwrap();
 //! let usdc = USDCDeployment::by_network(Network::BaseSepolia)
 //!     .pay_to("0xADDRESS");
 //!
 //! let app: Router = Router::new().route(
 //!     "/protected",
 //!     get(my_handler).layer(
-//!         awesome402.with_description("Access to /protected")
+//!         x402.with_description("Access to /protected")
 //!             .with_price_tag(usdc.amount(0.025).unwrap())
 //!     ),
 //! );
@@ -37,26 +37,26 @@
 //!
 //! By default, settlement occurs **after** the request is processed. You can change this behavior:
 //!
-//! - **[`Awesome402Middleware::settle_before_execution`]** - Settle payment **before** request execution.
+//! - **[`X402Middleware::settle_before_execution`]** - Settle payment **before** request execution.
 //!   This prevents issues where failed settlements need retry or authorization expires.
-//! - **[`Awesome402Middleware::settle_after_execution`]** - Settle payment **after** request execution (default).
+//! - **[`X402Middleware::settle_after_execution`]** - Settle payment **after** request execution (default).
 //!   This allows processing the request before committing the payment on-chain.
 //!
 //! ## Configuration Notes
 //!
-//! - **[`Awesome402Middleware::with_price_tag`]** sets the assets and amounts accepted for payment.
-//! - **[`Awesome402Middleware::with_description`]** and **[`Awesome402Middleware::with_mime_type`]** are optional but help the payer understand what is being paid for.
-//! - **[`Awesome402Middleware::with_resource`]** explicitly sets the full URI of the protected resource.
+//! - **[`X402Middleware::with_price_tag`]** sets the assets and amounts accepted for payment.
+//! - **[`X402Middleware::with_description`]** and **[`X402Middleware::with_mime_type`]** are optional but help the payer understand what is being paid for.
+//! - **[`X402Middleware::with_resource`]** explicitly sets the full URI of the protected resource.
 //!   This avoids recomputing [`PaymentRequirements`] on every request and should be preferred when possible.
 //! - If `with_resource` is **not** used, the middleware will compute the resource URI dynamically from the request
-//!   and a base URL set via **[`Awesome402Middleware::with_base_url`]**.
+//!   and a base URL set via **[`X402Middleware::with_base_url`]**.
 //! - If no base URL is provided, the default is `http://localhost/` (⚠️ avoid this in production).
 //!
 //! ## Best Practices (Production)
 //!
-//! - Use [`Awesome402Middleware::with_resource`] when the full resource URL is known.
-//! - Set[`Awesome402Middleware::with_base_url`] to support dynamic resource resolution.
-//! - Consider using [`Awesome402Middleware::settle_before_execution`] to avoid settlement failure recovery issues.
+//! - Use [`X402Middleware::with_resource`] when the full resource URL is known.
+//! - Set[`X402Middleware::with_base_url`] to support dynamic resource resolution.
+//! - Consider using [`X402Middleware::settle_before_execution`] to avoid settlement failure recovery issues.
 //! - ⚠️ Avoid relying on fallback `resource` value in production.
 
 use axum_core::body::Body;
@@ -79,12 +79,12 @@ use std::{
 use tower::util::BoxCloneSyncService;
 use tower::{Layer, Service};
 use url::Url;
-use awesome402::facilitator::Facilitator;
-use awesome402::network::Network;
-use awesome402::types::{
+use x402::facilitator::Facilitator;
+use x402::network::Network;
+use x402::types::{
     Base64Bytes, FacilitatorErrorReason, MixedAddress, PaymentPayload, PaymentRequiredResponse,
     PaymentRequirements, Scheme, SettleRequest, SettleResponse, TokenAmount, VerifyRequest,
-    VerifyResponse, Awesome402Version,
+    VerifyResponse, X402Version,
 };
 
 #[cfg(feature = "telemetry")]
@@ -93,13 +93,13 @@ use tracing::{Instrument, Level, instrument};
 use crate::facilitator_client::{FacilitatorClient, FacilitatorClientError};
 use crate::price::PriceTag;
 
-/// Middleware layer that enforces awesome402 payment verification and settlement.
+/// Middleware layer that enforces x402 payment verification and settlement.
 ///
 /// Wraps an Axum service, intercepts incoming HTTP requests, verifies the payment
 /// using the configured facilitator, and performs settlement after a successful response.
 /// Adds a `X-Payment-Response` header to the final HTTP response.
 #[derive(Clone, Debug)]
-pub struct Awesome402Middleware<F> {
+pub struct X402Middleware<F> {
     /// The facilitator used to verify and settle payments.
     facilitator: Arc<F>,
     /// Optional description string passed along with payment requirements. Empty string by default.
@@ -108,7 +108,7 @@ pub struct Awesome402Middleware<F> {
     mime_type: Option<String>,
     /// Optional resource URL. If not set, it will be derived from a request URI.
     resource: Option<Url>,
-    /// Optional base URL for computing full resource URLs if `resource` is not set, see [`Awesome402Middleware::resource`].
+    /// Optional base URL for computing full resource URLs if `resource` is not set, see [`X402Middleware::resource`].
     base_url: Option<Url>,
     /// List of price tags accepted for this endpoint.
     price_tag: Vec<PriceTag>,
@@ -123,30 +123,30 @@ pub struct Awesome402Middleware<F> {
     /// Cached set of payment offers for this middleware instance.
     ///
     /// This field holds either:
-    /// - a fully constructed list of [`PaymentRequirements`] (if [`Awesome402Middleware::with_resource`] was used),
+    /// - a fully constructed list of [`PaymentRequirements`] (if [`X402Middleware::with_resource`] was used),
     /// - or a partial list without `resource`, in which case the resource URL will be computed dynamically per request.
-    ///   In this case, please add `base_url` via [`Awesome402Middleware::with_base_url`].
+    ///   In this case, please add `base_url` via [`X402Middleware::with_base_url`].
     payment_offers: Arc<PaymentOffers>,
 }
 
-impl TryFrom<&str> for Awesome402Middleware<FacilitatorClient> {
+impl TryFrom<&str> for X402Middleware<FacilitatorClient> {
     type Error = FacilitatorClientError;
 
     fn try_from(value: &str) -> Result<Self, Self::Error> {
         let facilitator = FacilitatorClient::try_from(value)?;
-        Ok(Awesome402Middleware::new(facilitator))
+        Ok(X402Middleware::new(facilitator))
     }
 }
 
-impl TryFrom<String> for Awesome402Middleware<FacilitatorClient> {
+impl TryFrom<String> for X402Middleware<FacilitatorClient> {
     type Error = FacilitatorClientError;
 
     fn try_from(value: String) -> Result<Self, Self::Error> {
-        Awesome402Middleware::try_from(value.as_str())
+        X402Middleware::try_from(value.as_str())
     }
 }
 
-impl<F> Awesome402Middleware<F> {
+impl<F> X402Middleware<F> {
     /// Creates a new middleware instance with a default configuration.
     pub fn new(facilitator: F) -> Self {
         Self {
@@ -164,7 +164,7 @@ impl<F> Awesome402Middleware<F> {
         }
     }
 
-    /// Returns the configured base URL for awesome402-protected resources, or `http://localhost/` if not set.
+    /// Returns the configured base URL for x402-protected resources, or `http://localhost/` if not set.
     pub fn base_url(&self) -> Url {
         self.base_url
             .clone()
@@ -172,7 +172,7 @@ impl<F> Awesome402Middleware<F> {
     }
 }
 
-impl<F> Awesome402Middleware<F>
+impl<F> X402Middleware<F>
 where
     F: Clone,
 {
@@ -312,11 +312,11 @@ where
     /// # Example
     ///
     /// ```rust,no_run
-    /// use x402_axum::Awesome402Middleware;
-    /// use awesome402::network::{Network, USDCDeployment};
+    /// use x402_axum::X402Middleware;
+    /// use x402::network::{Network, USDCDeployment};
     /// use x402_axum::IntoPriceTag;
     ///
-    /// let awesome402 = Awesome402Middleware::try_from("https://facilitator.example.com/")
+    /// let x402 = X402Middleware::try_from("https://facilitator.example.com/")
     ///     .unwrap()
     ///     .settle_before_execution()
     ///     .with_price_tag(
@@ -511,7 +511,7 @@ where
     }
 }
 
-impl Awesome402Middleware<FacilitatorClient> {
+impl X402Middleware<FacilitatorClient> {
     pub fn facilitator_url(&self) -> &Url {
         self.facilitator.base_url()
     }
@@ -519,7 +519,7 @@ impl Awesome402Middleware<FacilitatorClient> {
 
 /// Wraps a cloned inner Axum service and augments it with payment enforcement logic.
 #[derive(Clone, Debug)]
-pub struct Awesome402MiddlewareService<F> {
+pub struct X402MiddlewareService<F> {
     /// Payment facilitator (local or remote)
     facilitator: Arc<F>,
     /// Payment requirements either with static or dynamic resource URLs
@@ -530,22 +530,22 @@ pub struct Awesome402MiddlewareService<F> {
     inner: BoxCloneSyncService<Request, Response, Infallible>,
 }
 
-impl<S, F> Layer<S> for Awesome402Middleware<F>
+impl<S, F> Layer<S> for X402Middleware<F>
 where
     S: Service<Request, Response = Response, Error = Infallible> + Clone + Send + Sync + 'static,
     S::Future: Send + 'static,
     F: Facilitator + Clone,
 {
-    type Service = Awesome402MiddlewareService<F>;
+    type Service = X402MiddlewareService<F>;
 
     fn layer(&self, inner: S) -> Self::Service {
         if self.base_url.is_none() && self.resource.is_none() {
             #[cfg(feature = "telemetry")]
             tracing::warn!(
-                "Awesome402Middleware base_url is not configured; defaulting to http://localhost/ for resource resolution"
+                "X402Middleware base_url is not configured; defaulting to http://localhost/ for resource resolution"
             );
         }
-        Awesome402MiddlewareService {
+        X402MiddlewareService {
             facilitator: self.facilitator.clone(),
             payment_offers: self.payment_offers.clone(),
             settle_before_execution: self.settle_before_execution,
@@ -554,7 +554,7 @@ where
     }
 }
 
-impl<F> Service<Request> for Awesome402MiddlewareService<F>
+impl<F> Service<Request> for X402MiddlewareService<F>
 where
     F: Facilitator + Clone + Send + Sync + 'static,
 {
@@ -612,7 +612,7 @@ impl X402Error {
         let payment_required_response = PaymentRequiredResponse {
             error: ERR_PAYMENT_HEADER_REQUIRED.clone(),
             accepts: payment_requirements,
-            x402_version: Awesome402Version::V1,
+            x402_version: X402Version::V1,
         };
         Self(payment_required_response)
     }
@@ -621,7 +621,7 @@ impl X402Error {
         let payment_required_response = PaymentRequiredResponse {
             error: ERR_INVALID_PAYMENT_HEADER.clone(),
             accepts: payment_requirements,
-            x402_version: Awesome402Version::V1,
+            x402_version: X402Version::V1,
         };
         Self(payment_required_response)
     }
@@ -630,7 +630,7 @@ impl X402Error {
         let payment_required_response = PaymentRequiredResponse {
             error: ERR_NO_PAYMENT_MATCHING.clone(),
             accepts: payment_requirements,
-            x402_version: Awesome402Version::V1,
+            x402_version: X402Version::V1,
         };
         Self(payment_required_response)
     }
@@ -642,7 +642,7 @@ impl X402Error {
         let payment_required_response = PaymentRequiredResponse {
             error: format!("Verification Failed: {error}"),
             accepts: payment_requirements,
-            x402_version: Awesome402Version::V1,
+            x402_version: X402Version::V1,
         };
         Self(payment_required_response)
     }
@@ -654,7 +654,7 @@ impl X402Error {
         let payment_required_response = PaymentRequiredResponse {
             error: format!("Settlement Failed: {error}"),
             accepts: payment_requirements,
-            x402_version: Awesome402Version::V1,
+            x402_version: X402Version::V1,
         };
         Self(payment_required_response)
     }
@@ -693,7 +693,7 @@ where
         let payment_header = headers.get("X-Payment");
         let supported = self.facilitator.supported().await.map_err(|e| {
             X402Error(PaymentRequiredResponse {
-                x402_version: Awesome402Version::V1,
+                x402_version: X402Version::V1,
                 error: format!("Unable to retrieve supported payment schemes: {e}"),
                 accepts: vec![],
             })
@@ -755,7 +755,7 @@ where
     /// Verifies the provided payment using the facilitator and known requirements. Returns a [`VerifyRequest`] if the payment is valid.
     #[cfg_attr(
         feature = "telemetry",
-        instrument(name = "awesome402.verify_payment", skip_all, err)
+        instrument(name = "x402.verify_payment", skip_all, err)
     )]
     pub async fn verify_payment(
         &self,
@@ -790,7 +790,7 @@ where
     /// Attempts to settle a verified payment on-chain. Returns [`SettleResponse`] on success or emits a 402 error.
     #[cfg_attr(
         feature = "telemetry",
-        instrument(name = "awesome402.settle_payment", skip_all, err)
+        instrument(name = "x402.settle_payment", skip_all, err)
     )]
     pub async fn settle_payment(
         &self,
@@ -881,7 +881,7 @@ where
     /// Orchestrates the full payment lifecycle: verifies the request, calls to the inner handler, and settles the payment, returns proper HTTP response.
     #[cfg_attr(
         feature = "telemetry",
-        instrument(name = "awesome402.handle_request", skip_all)
+        instrument(name = "x402.handle_request", skip_all)
     )]
     pub async fn handle_request<
         ReqBody,
@@ -1114,7 +1114,7 @@ async fn gather_payment_requirements(
 /// Type alias for a dynamic price callback function signature.
 ///
 /// This callback receives request headers, URI, and base URL, and returns
-/// the price amount for the request. It's used with [`Awesome402Middleware::with_dynamic_price`].
+/// the price amount for the request. It's used with [`X402Middleware::with_dynamic_price`].
 ///
 /// The callback signature is:
 /// ```rust,ignore
@@ -1129,7 +1129,7 @@ async fn gather_payment_requirements(
 ///
 /// ```rust,ignore
 /// use x402_axum::layer::DynamicPriceCallback;
-/// use awesome402::types::TokenAmount;
+/// use x402::types::TokenAmount;
 ///
 /// // Define your price calculation logic
 /// async fn calculate_price(

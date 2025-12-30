@@ -1,26 +1,20 @@
-# awesome402
+## Awesome402
 
-> A Rust-based implementation of the awesome402 protocol
-
-<div align="center">
-<table><tr><td>
-🚀 <strong>awesome402 Protocol v2</strong> — This is the main branch with awesome402 protocol v2 support, featuring a ground-up rethinking of how we accommodate various chains and payment schemes. The core facilitator is fully functional and ready for use. The <code>awesome402-axum</code> and <code>awesome402-reqwest</code> crates are being updated to leverage the new multi-chain, multi-scheme architecture and will be available soon. For protocol v1, see the <code>protocol-awesome402-v1</code> branch.
-</td></tr></table>
-</div>
+> Rust implementation of the x402 protocol for blockchain payments over HTTP
 
 This repository provides:
 
-- `awesome402` (current crate):
+- `x402` (core crate):
   - Core protocol types, facilitator traits, and logic for on-chain payment verification and settlement
-  - Facilitator binary - production-grade HTTP server to verify and settle awesome402 payments
-- [`awesome402-axum`](./crates/awesome402-axum) - Axum middleware for accepting awesome402 payments,
-- [`awesome402-reqwest`](./crates/awesome402-reqwest) - Wrapper for reqwest for transparent awesome402 payments,
-- [`awesome402-axum-example`](./examples/awesome402-axum-example) - an example of `awesome402-axum` usage.
-- [`awesome402-reqwest-example`](./examples/awesome402-reqwest-example) - an example of `awesome402-reqwest` usage.
+  - Facilitator binary - production-grade HTTP server to verify and settle payments
+- [`x402-axum`](./crates/x402-axum) - Axum middleware for accepting payments
+- [`x402-reqwest`](./crates/x402-reqwest) - Wrapper for reqwest for transparent payments
+- [`x402-axum-example`](./examples/x402-axum-example) - Example of `x402-axum` usage
+- [`x402-reqwest-example`](./examples/x402-reqwest-example) - Example of `x402-reqwest` usage
 
-## About awesome402
+## About Awesome402
 
-The [awesome402 protocol](https://docs.cdp.coinbase.com/x402/docs/overview) is a proposed standard for making blockchain payments directly through HTTP using native `402 Payment Required` status code.
+**Awesome402** is a Rust implementation of the [x402 protocol](https://docs.cdp.coinbase.com/x402/docs/overview), a proposed standard for making blockchain payments directly through HTTP using native `402 Payment Required` status code.
 
 Servers declare payment requirements for specific routes. Clients send cryptographically signed payment payloads. Facilitators verify and settle payments on-chain.
 
@@ -29,36 +23,36 @@ Servers declare payment requirements for specific routes. Clients send cryptogra
 ### Run facilitator
 
 ```shell
-docker run -v $(pwd)/config.json:/app/config.json -p 8080:8080 ghcr.io/awesome402/awesome402-facilitator
+docker run -v $(pwd)/config.json:/app/config.json -p 8080:8080 ghcr.io/x402/x402-facilitator
 ```
 
 Or build locally:
 ```shell
-docker build -t awesome402 .
-docker run -v $(pwd)/config.json:/app/config.json -p 8080:8080 awesome402
+docker build -t x402 .
+docker run -v $(pwd)/config.json:/app/config.json -p 8080:8080 x402
 ```
 
 See the [Facilitator](#facilitator) section below for full usage details
 
 ### Protect Axum Routes
 
-Use `awesome402-axum` to gate your routes behind on-chain payments:
+Use `x402-axum` to gate your routes behind on-chain payments:
 
 ```rust
-let awesome402 = Awesome402Middleware::try_from("https://awesome402.org/facilitator/").unwrap();
+let x402 = X402Middleware::try_from("https://x402.org/facilitator/").unwrap();
 let usdc = USDCDeployment::by_network(Network::BaseSepolia);
 
 let app = Router::new().route("/paid-content", get(handler).layer( 
-        awesome402.with_price_tag(usdc.amount("0.025").pay_to("0xYourAddress").unwrap())
+        x402.with_price_tag(usdc.amount("0.025").pay_to("0xYourAddress").unwrap())
     ),
 );
 ```
 
-See [`awesome402-axum` crate docs](./crates/awesome402-axum/README.md).
+See [`x402-axum` crate docs](./crates/x402-axum/README.md).
 
-### Send awesome402 payments
+### Send x402 payments
 
-Use `awesome402-reqwest` to send payments:
+Use `x402-reqwest` to send payments:
 
 ```rust
 let signer: PrivateKeySigner = "0x...".parse()?; // never hardcode real keys!
@@ -75,26 +69,12 @@ let res = client
     .await?;
 ```
 
-See [`awesome402-reqwest` crate docs](./crates/awesome402-reqwest/README.md).
-
-## Roadmap
-
-| Milestone                           | Description                                                                                              |   Status   |
-|:------------------------------------|:---------------------------------------------------------------------------------------------------------|:----------:|
-| Facilitator for Base USDC           | Payment verification and settlement service, enabling real-time pay-per-use transactions for Base chain. | ✅ Complete |
-| Metrics and Tracing                 | Expose OpenTelemetry metrics and structured tracing for observability, monitoring, and debugging         | ✅ Complete |
-| Server Middleware                   | Provide ready-to-use integration for Rust web frameworks such as axum and tower.                         | ✅ Complete |
-| Client Library                      | Provide a lightweight Rust library for initiating and managing awesome402 payment flows from Rust clients.     | ✅ Complete |
-| Solana Support                      | Support Solana chain.                                                                                    | ✅ Complete |
-| Protocol v2 Support                 | Support awesome402 protocol version 2 with improved payload structure.                                         | ✅ Complete |
-| Multiple chains and multiple tokens | Support various tokens and EVM compatible chains.                                                        | ✅ Complete |
-| Buiild your own facilitator hooks   | Pre/post hooks for analytics, access control, and auditability.                                          | 🔜 Planned |
-
-The initial focus is on establishing a stable, production-quality Rust SDK and middleware ecosystem for awesome402 integration.
+See [`x402-reqwest` crate docs](./crates/x402-reqwest/README.md).
+```
 
 ## Facilitator
 
-The `awesome402` crate (this repo) provides a runnable awesome402 facilitator binary. The _Facilitator_ role simplifies adoption of awesome402 by handling:
+The `x402` crate (this repo) provides a runnable facilitator binary for **Awesome402**. The _Facilitator_ role simplifies adoption of Awesome402 by handling:
 - **Payment verification**: Confirming that client-submitted payment payloads match the declared requirements.
 - **Payment settlement**: Submitting validated payments to the blockchain and monitoring their confirmation.
 
@@ -102,10 +82,10 @@ By using a Facilitator, servers (sellers) do not need to:
 - Connect directly to a blockchain.
 - Implement complex cryptographic or blockchain-specific payment logic.
 
-Instead, they can rely on the Facilitator to perform verification and settlement, reducing operational overhead and accelerating awesome402 adoption.
+Instead, they can rely on the Facilitator to perform verification and settlement, reducing operational overhead and accelerating Awesome402 adoption.
 The Facilitator **never holds user funds**. It acts solely as a stateless verification and execution layer for signed payment payloads.
 
-For a detailed overview of the awesome402 payment flow and Facilitator role, see the [awesome402 protocol documentation](https://docs.cdp.coinbase.com/x402/docs/overview).
+For a detailed overview of the x402 payment flow and Facilitator role, see the [x402 protocol documentation](https://docs.cdp.coinbase.com/x402/docs/overview).
 
 ### Usage
 
@@ -179,17 +159,17 @@ export EVM_PRIVATE_KEY=0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbee
 
 #### 2. Build and Run with Docker
 
-Prebuilt Docker images are available at [GitHub Container Registry](https://github.com/orgs/awesome402/packages/container/package/awesome402-facilitator): `ghcr.io/awesome402/awesome402-facilitator`
+Prebuilt Docker images are available at [GitHub Container Registry](https://github.com/orgs/x402/packages/container/package/x402-facilitator): `ghcr.io/x402/x402-facilitator`
 
 Run the container:
 ```shell
-docker run -v $(pwd)/config.json:/app/config.json -p 8080:8080 ghcr.io/awesome402/awesome402-facilitator
+docker run -v $(pwd)/config.json:/app/config.json -p 8080:8080 ghcr.io/x402/x402-facilitator
 ```
 
 Or build a Docker image locally:
 ```shell
-docker build -t awesome402 .
-docker run -v $(pwd)/config.json:/app/config.json -p 8080:8080 awesome402
+docker build -t x402 .
+docker run -v $(pwd)/config.json:/app/config.json -p 8080:8080 x402
 ```
 
 You can also pass environment variables for private keys:
@@ -197,7 +177,7 @@ You can also pass environment variables for private keys:
 docker run -v $(pwd)/config.json:/app/config.json \
   -e EVM_PRIVATE_KEY=0x... \
   -e SOLANA_PRIVATE_KEY=... \
-  -p 8080:8080 ghcr.io/awesome402/awesome402-facilitator
+  -p 8080:8080 ghcr.io/x402/x402-facilitator
 ```
 
 The container:
@@ -207,7 +187,7 @@ The container:
 
 #### 3. Point your application to your Facilitator
 
-If you are building an awesome402-powered application, update the Facilitator URL to point to your self-hosted instance.
+If you are building an Awesome402-powered application, update the Facilitator URL to point to your self-hosted instance.
 
 > ℹ️ **Tip:** For production deployments, ensure your Facilitator is reachable via HTTPS and protect it against public abuse.
 
@@ -217,7 +197,7 @@ If you are building an awesome402-powered application, update the Facilitator UR
 ```typescript
 import { Hono } from "hono";
 import { serve } from "@hono/node-server";
-import { paymentMiddleware } from "awesome402-hono";
+import { paymentMiddleware } from "x402-hono";
 
 const app = new Hono();
 
@@ -252,14 +232,14 @@ serve({
 </details>
 
 <details>
-<summary>If you use `awesome402-axum`</summary>
+<summary>If you use `x402-axum`</summary>
 
 ```rust
-let awesome402 = Awesome402Middleware::try_from("http://your-validator.url/").unwrap();  // 👈 Your self-hosted Facilitator
+let x402 = X402Middleware::try_from("http://your-validator.url/").unwrap();  // 👈 Your self-hosted Facilitator
 let usdc = USDCDeployment::by_network(Network::BaseSepolia);
 
 let app = Router::new().route("/paid-content", get(handler).layer( 
-        awesome402.with_price_tag(usdc.amount("0.025").pay_to("0xYourAddress").unwrap())
+        x402.with_price_tag(usdc.amount("0.025").pay_to("0xYourAddress").unwrap())
     ),
 );
 ```
@@ -280,124 +260,6 @@ The service reads configuration from a JSON file (`config.json` by default) or v
   "schemes": [ ... ]
 }
 ```
-
-#### Top-level Options
-
-| Option | Type | Default | Description |
-|:-------|:-----|:--------|:------------|
-| `port` | number | `8080` | HTTP server port (can also be set via `PORT` env var) |
-| `host` | string | `"0.0.0.0"` | HTTP host to bind to (can also be set via `HOST` env var) |
-| `chains` | object | `{}` | Map of CAIP-2 chain IDs to chain configuration |
-| `schemes` | array | `[]` | List of payment schemes to enable |
-
-#### EVM Chain Configuration (`eip155:*`)
-
-```json
-{
-  "eip155:84532": {
-    "eip1559": true,
-    "flashblocks": true,
-    "receipt_timeout_secs": 30,
-    "signers": ["$EVM_PRIVATE_KEY"],
-    "rpc": [
-      {
-        "http": "https://sepolia.base.org",
-        "rate_limit": 50
-      }
-    ]
-  }
-}
-```
-
-| Option | Type | Required | Default | Description |
-|:-------|:-----|:---------|:--------|:------------|
-| `signers` | array | ✅ | - | Array of private keys (hex format, 0x-prefixed) or env var references |
-| `rpc` | array | ✅ | - | Array of RPC endpoint configurations |
-| `rpc[].http` | string | ✅ | - | HTTP URL for the RPC endpoint |
-| `rpc[].rate_limit` | number | ❌ | - | Rate limit for requests per second |
-| `eip1559` | boolean | ❌ | `true` | Use EIP-1559 transaction type (type 2) instead of legacy transactions |
-| `flashblocks` | boolean | ❌ | `false` | Estimate gas against "latest" block to accommodate flashblocks-enabled RPC semantics |
-| `receipt_timeout_secs` | number | ❌ | `30` | Timeout for waiting for transaction receipt |
-
-#### Solana Chain Configuration (`solana:*`)
-
-```json
-{
-  "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp": {
-    "signer": "$SOLANA_PRIVATE_KEY",
-    "rpc": "https://api.mainnet-beta.solana.com",
-    "pubsub": "wss://api.mainnet-beta.solana.com",
-    "max_compute_unit_limit": 400000,
-    "max_compute_unit_price": 1000000
-  }
-}
-```
-
-| Option | Type | Required | Default | Description |
-|:-------|:-----|:---------|:--------|:------------|
-| `signer` | string | ✅ | - | Private key (base58 format, 64 bytes) or env var reference |
-| `rpc` | string | ✅ | - | HTTP URL for the RPC endpoint |
-| `pubsub` | string | ❌ | - | WebSocket URL for pubsub notifications |
-| `max_compute_unit_limit` | number | ❌ | `400000` | Maximum compute unit limit for transactions |
-| `max_compute_unit_price` | number | ❌ | `1000000` | Maximum compute unit price for transactions |
-
-#### Scheme Configuration
-
-```json
-{
-  "schemes": [
-    {
-      "enabled": true,
-      "slug": "v2:eip155:exact",
-      "chains": "eip155:*",
-      "config": {}
-    }
-  ]
-}
-```
-
-| Option | Type | Required | Default | Description |
-|:-------|:-----|:---------|:--------|:------------|
-| `enabled` | boolean | ❌ | `true` | Whether this scheme is enabled |
-| `slug` | string | ✅ | - | Scheme identifier: `v{version}:{namespace}:{name}` |
-| `chains` | string | ✅ | - | Chain pattern: `eip155:*`, `solana:*`, or specific chain ID |
-| `config` | object | ❌ | - | Scheme-specific configuration |
-
-**Important:** Schemes must be explicitly listed in the `schemes` array to be enabled. If a scheme is not in the configuration, it will not be available for payment verification or settlement.
-
-**Available schemes:**
-- `v1:eip155:exact` - ERC-3009 transferWithAuthorization for EVM chains (protocol v1)
-- `v2:eip155:exact` - ERC-3009 transferWithAuthorization for EVM chains (protocol v2)
-- `v1:solana:exact` - SPL token transfer for Solana (protocol v1)
-- `v2:solana:exact` - SPL token transfer for Solana (protocol v2)
-
-#### Environment Variables
-
-Environment variables can be used for:
-- **Private keys**: Reference in config with `$VAR` or `${VAR}` syntax
-- **Server settings**: `PORT` and `HOST` as fallbacks if not in config file
-- **Logging**: `RUST_LOG` for log level (e.g., `info`, `debug`, `trace`)
-
-
-### Observability
-
-The facilitator emits [OpenTelemetry](https://opentelemetry.io)-compatible traces and metrics to standard endpoints,
-making it easy to integrate with tools like Honeycomb, Prometheus, Grafana, and others.
-Tracing spans are annotated with HTTP method, status code, URI, latency, other request and process metadata.
-
-To enable tracing and metrics export, set the appropriate `OTEL_` environment variables:
-
-```dotenv
-# For Honeycomb, for example:
-# Endpoint URL for sending OpenTelemetry traces and metrics
-OTEL_EXPORTER_OTLP_ENDPOINT=https://api.honeycomb.io:443
-# Comma-separated list of key=value pairs to add as headers
-OTEL_EXPORTER_OTLP_HEADERS=x-honeycomb-team=your_api_key,x-honeycomb-dataset=awesome402
-# Export protocol to use for telemetry. Supported values: `http/protobuf` (default), `grpc`
-OTEL_EXPORTER_OTLP_PROTOCOL=http/protobuf
-```
-
-The service automatically detects and initializes exporters if `OTEL_EXPORTER_OTLP_*` variables are provided.
 
 ### Supported Networks
 
@@ -444,11 +306,11 @@ cargo run
 
 ## Related Resources
 
-* [x402 Overview by Coinbase](https://docs.cdp.coinbase.com/x402/docs/overview)
+* [x402 Protocol Overview by Coinbase](https://docs.cdp.coinbase.com/x402/docs/overview)
 * [Facilitator Documentation by Coinbase](https://docs.cdp.coinbase.com/x402/docs/facilitator)
 
 ## Contributions and feedback welcome!
-Feel free to open issues or pull requests to improve awesome402 support in the Rust ecosystem.
+Feel free to open issues or pull requests to improve Awesome402 in the Rust ecosystem.
 
 ## License
 

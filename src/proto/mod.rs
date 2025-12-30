@@ -37,84 +37,84 @@ pub struct SupportedResponse {
 
 /// Represents the protocol version. Versions 1 and 2 are supported.
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
-pub enum Awesome402Version {
+pub enum X402Version {
     /// Version `1`.
-    V1(v1::Awesome402Version1),
+    V1(v1::X402Version1),
     /// Version `2`.
-    V2(v2::Awesome402Version2),
+    V2(v2::X402Version2),
 }
 
-impl Awesome402Version {
-    pub fn v1() -> Awesome402Version {
-        Awesome402Version::V1(v1::Awesome402Version1)
+impl X402Version {
+    pub fn v1() -> X402Version {
+        X402Version::V1(v1::X402Version1)
     }
-    pub fn v2() -> Awesome402Version {
-        Awesome402Version::V2(v2::Awesome402Version2)
+    pub fn v2() -> X402Version {
+        X402Version::V2(v2::X402Version2)
     }
 }
 
-impl From<Awesome402Version> for u8 {
-    fn from(version: Awesome402Version) -> Self {
+impl From<X402Version> for u8 {
+    fn from(version: X402Version) -> Self {
         match version {
-            Awesome402Version::V1(v) => v.into(),
-            Awesome402Version::V2(v) => v.into(),
+            X402Version::V1(v) => v.into(),
+            X402Version::V2(v) => v.into(),
         }
     }
 }
 
-impl TryFrom<u64> for Awesome402Version {
-    type Error = Awesome402VersionError;
+impl TryFrom<u64> for X402Version {
+    type Error = X402VersionError;
 
     fn try_from(value: u64) -> Result<Self, Self::Error> {
         match value {
-            1 => Ok(Awesome402Version::V1(v1::Awesome402Version1)),
-            2 => Ok(Awesome402Version::V2(v2::Awesome402Version2)),
-            _ => Err(Awesome402VersionError(value)),
+            1 => Ok(X402Version::V1(v1::X402Version1)),
+            2 => Ok(X402Version::V2(v2::X402Version2)),
+            _ => Err(X402VersionError(value)),
         }
     }
 }
 
-impl Serialize for Awesome402Version {
+impl Serialize for X402Version {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         match self {
-            Awesome402Version::V1(v) => v.serialize(serializer),
-            Awesome402Version::V2(v) => v.serialize(serializer),
+            X402Version::V1(v) => v.serialize(serializer),
+            X402Version::V2(v) => v.serialize(serializer),
         }
     }
 }
 
-impl Display for Awesome402Version {
+impl Display for X402Version {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Awesome402Version::V1(v) => Display::fmt(v, f),
-            Awesome402Version::V2(v) => Display::fmt(v, f),
+            X402Version::V1(v) => Display::fmt(v, f),
+            X402Version::V2(v) => Display::fmt(v, f),
         }
     }
 }
 
 #[derive(Debug, thiserror::Error)]
 #[error("Unsupported x402 version: {0}")]
-pub struct Awesome402VersionError(pub u64);
+pub struct X402VersionError(pub u64);
 
-impl TryFrom<u8> for Awesome402Version {
-    type Error = Awesome402VersionError;
+impl TryFrom<u8> for X402Version {
+    type Error = X402VersionError;
 
     fn try_from(value: u8) -> Result<Self, Self::Error> {
         match value {
-            v1::Awesome402Version1::VALUE => Ok(Awesome402Version::v1()),
-            v2::Awesome402Version2::VALUE => Ok(Awesome402Version::v2()),
-            _ => Err(Awesome402VersionError(value.into())),
+            v1::X402Version1::VALUE => Ok(X402Version::v1()),
+            v2::X402Version2::VALUE => Ok(X402Version::v2()),
+            _ => Err(X402VersionError(value.into())),
         }
     }
 }
 
-impl<'de> Deserialize<'de> for Awesome402Version {
+impl<'de> Deserialize<'de> for X402Version {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: Deserializer<'de>,
     {
         let num = u8::deserialize(deserializer)?;
-        Awesome402Version::try_from(num).map_err(serde::de::Error::custom)
+        X402Version::try_from(num).map_err(serde::de::Error::custom)
     }
 }
 
@@ -129,17 +129,17 @@ impl VerifyRequest {
     }
 
     pub fn scheme_handler_slug(&self) -> Option<SchemeHandlerSlug> {
-        let x402_version = self.0.get("awesome402Version")?.as_u64()?;
-        let x402_version = Awesome402Version::try_from(x402_version).ok()?;
+        let x402_version = self.0.get("x402Version")?.as_u64()?;
+        let x402_version = X402Version::try_from(x402_version).ok()?;
         match x402_version {
-            Awesome402Version::V1(_) => {
+            X402Version::V1(_) => {
                 let network_name = self.0.get("paymentPayload")?.get("network")?.as_str()?;
                 let chain_id = ChainId::from_network_name(network_name)?;
                 let scheme = self.0.get("paymentPayload")?.get("scheme")?.as_str()?;
                 let slug = SchemeHandlerSlug::new(chain_id, 1, scheme.into());
                 Some(slug)
             }
-            Awesome402Version::V2(_) => {
+            X402Version::V2(_) => {
                 let chain_id_string = self
                     .0
                     .get("paymentPayload")?

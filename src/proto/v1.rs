@@ -5,34 +5,34 @@ use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use std::fmt;
 use std::fmt::Display;
 
-/// Version 1 of the awesome402 protocol.
+/// Version 1 of the x402 protocol.
 #[derive(Debug, Copy, Clone, Default, PartialEq, Eq)]
-pub struct Awesome402Version1;
+pub struct X402Version1;
 
-impl Awesome402Version1 {
+impl X402Version1 {
     pub const VALUE: u8 = 1;
 }
 
-impl From<Awesome402Version1> for u8 {
-    fn from(_: Awesome402Version1) -> Self {
-        Awesome402Version1::VALUE
+impl From<X402Version1> for u8 {
+    fn from(_: X402Version1) -> Self {
+        X402Version1::VALUE
     }
 }
 
-impl Serialize for Awesome402Version1 {
+impl Serialize for X402Version1 {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         serializer.serialize_u8(Self::VALUE)
     }
 }
 
-impl<'de> Deserialize<'de> for Awesome402Version1 {
+impl<'de> Deserialize<'de> for X402Version1 {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: Deserializer<'de>,
     {
         let num = u8::deserialize(deserializer)?;
         if num == Self::VALUE {
-            Ok(Awesome402Version1)
+            Ok(X402Version1)
         } else {
             Err(serde::de::Error::custom(format!(
                 "expected version {}, got {}",
@@ -43,7 +43,7 @@ impl<'de> Deserialize<'de> for Awesome402Version1 {
     }
 }
 
-impl Display for Awesome402Version1 {
+impl Display for X402Version1 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", Self::VALUE)
     }
@@ -242,7 +242,7 @@ impl<'de> Deserialize<'de> for VerifyResponse {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct VerifyRequest<TPayload, TRequirements> {
-    pub x402_version: Awesome402Version1,
+    pub x402_version: X402Version1,
     pub payment_payload: TPayload,
     pub payment_requirements: TRequirements,
 }
@@ -264,7 +264,7 @@ where
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct PaymentPayload<TScheme, TPayload> {
-    pub x402_version: Awesome402Version1,
+    pub x402_version: X402Version1,
     pub scheme: TScheme,
     pub network: String,
     pub payload: TPayload,
@@ -294,6 +294,6 @@ pub struct PaymentRequirements<TScheme, TAmount, TAddress, TExtra> {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct PaymentRequired {
-    pub x402_version: Awesome402Version1,
+    pub x402_version: X402Version1,
     pub accepts: Vec<serde_json::Value>,
 }

@@ -1,14 +1,14 @@
 use reqwest::{Client, ClientBuilder};
 use reqwest_middleware as rqm;
 
-use crate::client::Awesome402Client;
+use crate::client::X402Client;
 
 pub trait ReqwestWithPayments<A, S> {
-    fn with_payments(self, x402_client: Awesome402Client<S>) -> ReqwestWithPaymentsBuilder<A, S>;
+    fn with_payments(self, x402_client: X402Client<S>) -> ReqwestWithPaymentsBuilder<A, S>;
 }
 
 impl<S> ReqwestWithPayments<Client, S> for Client {
-    fn with_payments(self, x402_client: Awesome402Client<S>) -> ReqwestWithPaymentsBuilder<Client, S> {
+    fn with_payments(self, x402_client: X402Client<S>) -> ReqwestWithPaymentsBuilder<Client, S> {
         ReqwestWithPaymentsBuilder {
             inner: self,
             x402_client,
@@ -19,7 +19,7 @@ impl<S> ReqwestWithPayments<Client, S> for Client {
 impl<S> ReqwestWithPayments<ClientBuilder, S> for ClientBuilder {
     fn with_payments(
         self,
-        x402_client: Awesome402Client<S>,
+        x402_client: X402Client<S>,
     ) -> ReqwestWithPaymentsBuilder<ClientBuilder, S> {
         ReqwestWithPaymentsBuilder {
             inner: self,
@@ -30,7 +30,7 @@ impl<S> ReqwestWithPayments<ClientBuilder, S> for ClientBuilder {
 
 pub struct ReqwestWithPaymentsBuilder<A, S> {
     inner: A,
-    x402_client: Awesome402Client<S>,
+    x402_client: X402Client<S>,
 }
 
 pub trait ReqwestWithPaymentsBuild {
@@ -43,7 +43,7 @@ pub trait ReqwestWithPaymentsBuild {
 
 impl<S> ReqwestWithPaymentsBuild for ReqwestWithPaymentsBuilder<Client, S>
 where
-    Awesome402Client<S>: rqm::Middleware,
+    X402Client<S>: rqm::Middleware,
 {
     type BuildResult = rqm::ClientWithMiddleware;
     type BuilderResult = rqm::ClientBuilder;
@@ -59,7 +59,7 @@ where
 
 impl<S> ReqwestWithPaymentsBuild for ReqwestWithPaymentsBuilder<ClientBuilder, S>
 where
-    Awesome402Client<S>: rqm::Middleware,
+    X402Client<S>: rqm::Middleware,
 {
     type BuildResult = Result<rqm::ClientWithMiddleware, reqwest::Error>;
     type BuilderResult = Result<rqm::ClientBuilder, reqwest::Error>;
