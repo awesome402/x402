@@ -1,17 +1,17 @@
-# awesome402-axum-example
+# x402-axum-example
 
 <div align="center">
 <table><tr><td>
-🔧 <strong>Protocol v2 Update Coming</strong> — This example is being updated for awesome402 protocol v2. Stay tuned! For v1 examples, see the <code>protocol-x402-v1</code> branch.
+🔧 <strong>Protocol v2 Update Coming</strong> — This example is being updated for x402 protocol v2. Stay tuned! For v1 examples, see the <code>protocol-x402-v1</code> branch.
 </td></tr></table>
 </div>
 
-An example Axum server demonstrating how to protect routes using the [`awesome402-axum`](https://crates.io/crates/awesome402-axum) crate
-and enforce payments using the [awesome402 protocol](https://www.awesome402.org).
+An example Axum server demonstrating how to protect routes using the [`x402-axum`](https://crates.io/crates/x402-axum) crate
+and enforce payments using the [x402 protocol](https://www.x402.org).
 
 This example shows how to:
 - Configure a remote facilitator for payment verification and settlement.
-- Gate access to an API endpoint using the [`awesome402-axum`](https://crates.io/crates/awesome402-axum) middleware
+- Gate access to an API endpoint using the [`x402-axum`](https://crates.io/crates/x402-axum) middleware
   that requires on-chain payment before responding.
 - Enable structured logging and distributed tracing using `tracing` and OpenTelemetry to observe what's happening inside the middleware.
 
@@ -36,8 +36,8 @@ This example shows how to:
 ## Try It
 
 ```bash
-git clone https://github.com/awesome402/x402 awesome402
-cd awesome402/examples/awesome402-axum-example
+git clone https://github.com/x402/x402 x402
+cd x402/examples/x402-axum-example
 cargo run
 ```
 
@@ -151,8 +151,8 @@ These can be visualized in tools like Jaeger, Tempo, or Grafana.
 </details>
 
 ## Related Crates
-- [`awesome402-axum`](https://crates.io/crates/awesome402-axum) – Axum middleware used in this example.
-- [`awesome402`](https://crates.io/crates/awesome402) – Core awesome402 protocol types, client traits, and utilities.
+- [`x402-axum`](https://crates.io/crates/x402-axum) – Axum middleware used in this example.
+- [`x402`](https://crates.io/crates/x402) – Core x402 protocol types, client traits, and utilities.
 
 ## License
 

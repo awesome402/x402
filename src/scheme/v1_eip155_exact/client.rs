@@ -213,7 +213,7 @@ where
 /// ```ignore
 /// use std::sync::Arc;
 /// use alloy_signer_local::PrivateKeySigner;
-/// use awesome402::scheme::v1_eip155_exact::SignerLike;
+/// use x402::scheme::v1_eip155_exact::SignerLike;
 ///
 /// let signer: PrivateKeySigner = ...;
 /// let signer = Arc::new(signer);

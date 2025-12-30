@@ -2,13 +2,13 @@
 //!
 //! This module provides a comprehensive registry of well-known blockchain networks with their
 //! corresponding CAIP-2 (Chain Agnostic Improvement Proposal 2) chain identifiers. It is designed
-//! to improve developer experience (DX) when working with the awesome402 protocol, which operates on
+//! to improve developer experience (DX) when working with the x402 protocol, which operates on
 //! CAIP-2 chain IDs.
 //!
 //! # Purpose
 //!
 //! This module serves two main purposes:
-//! 1. **Compatibility with awesome402 protocol v1**: Maintains support for networks that were known in v1
+//! 1. **Compatibility with x402 protocol v1**: Maintains support for networks that were known in v1
 //! 2. **Better Developer Experience**: Provides convenient methods to work with well-known networks
 //!    without manually constructing CAIP-2 identifiers
 //!
@@ -289,7 +289,7 @@ impl KnownNetworkSolana<ChainId> for ChainId {
 /// A static array of well-known blockchain networks.
 ///
 /// This array contains a registry of well-known blockchain networks for improved
-/// developer experience and awesome402 protocol v1 compatibility, organized by ecosystem
+/// developer experience and x402 protocol v1 compatibility, organized by ecosystem
 /// (EVM networks first, then Solana networks). Each entry includes the network's
 /// human-readable name, CAIP-2 namespace, and chain reference.
 ///

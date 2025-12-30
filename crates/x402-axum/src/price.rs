@@ -1,9 +1,9 @@
 use std::fmt::Debug;
-use awesome402::network::USDCDeployment;
-use awesome402::types::{EvmAddress, MixedAddress, TokenDeployment};
-use awesome402::types::{MoneyAmount, TokenAmount};
+use x402::network::USDCDeployment;
+use x402::types::{EvmAddress, MixedAddress, TokenDeployment};
+use x402::types::{MoneyAmount, TokenAmount};
 
-/// A complete awesome402-compatible price tag, describing a required payment.
+/// A complete x402-compatible price tag, describing a required payment.
 ///
 /// A `PriceTag` specifies a target recipient (`pay_to`), a token-denominated amount,
 /// and an associated ERC-20 asset. It can be used by sellers to declare required payments
@@ -90,7 +90,7 @@ where
 ///
 /// ```rust
 /// use x402_axum::price::IntoPriceTag;
-/// use awesome402::network::{Network, USDCDeployment};
+/// use x402::network::{Network, USDCDeployment};
 ///
 /// let price_tag = USDCDeployment::by_network(Network::Base)
 ///     .amount("1.50")

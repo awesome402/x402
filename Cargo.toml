@@ -1,12 +1,12 @@
 [package]
-name = "awesome402"
+name = "x402"
 version = "0.11.0"
-edition = "2025"
+edition = "2024"
 license = "MIT"
-repository = "https://github.com/awesome402/x402"
+repository = "https://github.com/x402/x402"
 description = "x402 payments in Rust: verify, settle, and monitor payments over HTTP 402 flows"
 readme = "README.md"
-keywords = ["blockchain", "payments", "awesome402", "stablecoin", "http-402"]
+keywords = ["blockchain", "payments", "x402", "stablecoin", "http-402"]
 categories = ["cryptography", "finance", "network-programming", "web-programming::http-server"]
 
 [dependencies]

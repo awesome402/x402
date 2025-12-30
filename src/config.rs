@@ -16,8 +16,8 @@ use crate::chain::{ChainId, ChainIdPattern};
 
 /// CLI arguments for the x402 facilitator server.
 #[derive(Parser, Debug)]
-#[command(name = "awesome402")]
-#[command(about = "awesome402 Facilitator HTTP server")]
+#[command(name = "x402")]
+#[command(about = "x402 Facilitator HTTP server")]
 struct CliArgs {
     /// Path to the JSON configuration file
     #[arg(long = "config", short = 'c')]

@@ -1,7 +1,7 @@
-use awesome402::proto;
-use awesome402::proto::client::HttpTransport;
-use awesome402::proto::{v1, v2};
-use awesome402::util::Base64Bytes;
+use x402::proto;
+use x402::proto::client::HttpTransport;
+use x402::proto::{v1, v2};
+use x402::util::Base64Bytes;
 
 pub struct HttpPaymentRequired(HttpTransport<proto::PaymentRequired>);
 

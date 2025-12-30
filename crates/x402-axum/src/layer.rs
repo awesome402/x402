@@ -80,10 +80,9 @@ use tower::util::BoxCloneSyncService;
 use tower::{Layer, Service};
 use url::Url;
 use x402::facilitator::Facilitator;
-use x402::network::Network;
-use x402::types::{
-    Base64Bytes, FacilitatorErrorReason, MixedAddress, PaymentPayload, PaymentRequiredResponse,
-    PaymentRequirements, Scheme, SettleRequest, SettleResponse, TokenAmount, VerifyRequest,
+use x402::networks::Network;
+use x402::proto::{
+    SettleRequest, SettleResponse, VerifyRequest,
     VerifyResponse, X402Version,
 };
 

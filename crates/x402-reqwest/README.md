@@ -1,6 +1,6 @@
 # x402-reqwest
 
-**Wrapper around [`reqwest`](https://crates.io/crates/reqwest) that transparently handles HTTP `402 Payment Required` responses using the [awesome402 protocol](https://awesome402.org/).**
+**Wrapper around [`reqwest`](https://crates.io/crates/reqwest) that transparently handles HTTP `402 Payment Required` responses using the [x402 protocol](https://x402.org/).**
 
 This crate enables your [`reqwest-middleware`](https://crates.io/crates/reqwest-middleware)-based HTTP clients to:
 - Detect `402 Payment Required` responses
@@ -8,7 +8,7 @@ This crate enables your [`reqwest-middleware`](https://crates.io/crates/reqwest-
 - Retry the request with the `X-Payment` header attached
 - Respect client-defined preferences like token priority and per-token payment caps
 
-All in all: **automatically pay for resources using the awesome402 protocol**.
+All in all: **automatically pay for resources using the x402 protocol**.
 
 Built with [`reqwest-middleware`] and compatible with any [`alloy::Signer`](https://alloy.rs).
 
@@ -25,13 +25,13 @@ Add the dependency:
 
 ```toml
 # Cargo.toml
-awesome402-reqwest = "0.4"
+x402-reqwest = "0.4"
 ```
 
 To enable tracing:
 
 ```toml
-awesome402-reqwest = { version = "0.4", features = ["telemetry"] }
+x402-reqwest = { version = "0.4", features = ["telemetry"] }
 ```
 
 ## 💡 Examples

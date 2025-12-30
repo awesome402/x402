@@ -1,6 +1,6 @@
-//! awesome402 Facilitator HTTP entrypoint.
+//! x402 Facilitator HTTP entrypoint.
 //!
-//! This binary launches an Axum-based HTTP server that exposes the awesome402 protocol interface
+//! This binary launches an Axum-based HTTP server that exposes the x402 protocol interface
 //! for payment verification and settlement via Ethereum-compatible networks.
 //!
 //! Endpoints:
@@ -49,7 +49,7 @@ use crate::util::{SigDown, Telemetry};
 /// - Loads `.env` variables.
 /// - Initializes OpenTelemetry tracing.
 /// - Connects to Ethereum providers for supported networks.
-/// - Starts an Axum HTTP server with the awesome402 protocol handlers.
+/// - Starts an Axum HTTP server with the x402 protocol handlers.
 ///
 /// Binds to the address specified by the `HOST` and `PORT` env vars.
 #[tokio::main]

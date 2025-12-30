@@ -1,4 +1,4 @@
-//! Facilitator implementation for awesome402 payments using on-chain verification and settlement.
+//! Facilitator implementation for x402 payments using on-chain verification and settlement.
 //!
 //! This module provides a [`Facilitator`] implementation that validates x402 payment payloads
 //! and performs on-chain settlements using ERC-3009 `transferWithAuthorization`.
@@ -16,7 +16,7 @@ use crate::proto;
 use crate::proto::PaymentVerificationError;
 use crate::scheme::{SchemeRegistry, X402SchemeFacilitatorError};
 
-/// A concrete [`Facilitator`] implementation that verifies and settles awesome402 payments
+/// A concrete [`Facilitator`] implementation that verifies and settles x402 payments
 /// using a network-aware provider cache.
 ///
 /// This type is generic over the [`ProviderMap`] implementation used to access EVM providers,

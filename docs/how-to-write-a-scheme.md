@@ -18,7 +18,7 @@ For example, the `exact` scheme implements ERC-3009 `transferWithAuthorization` 
 | Concept               | Open/Closed | Description                                                                                                           |
 |-----------------------|-------------|-----------------------------------------------------------------------------------------------------------------------|
 | **Schemes**           | **Open**    | Widely extensible. Anyone can create custom schemes for new payment flows.                                            |
-| **Protocol Versions** | Closed      | Fixed set: v1 and v2. Defined by the awesome402 specification. (v1 is legacy, v2 will probably live for the next few years) |
+| **Protocol Versions** | Closed      | Fixed set: v1 and v2. Defined by the x402 specification. (v1 is legacy, v2 will probably live for the next few years) |
 | **Chain Providers**   | Closed      | Predefined set for the implementation due to chain-specific complexity.                                               |
 
 ## Architecture
@@ -58,7 +58,7 @@ Provides identification for a scheme. This trait defines the scheme's version, n
 
 ```rust
 pub trait X402SchemeId {
-    /// The awesome402 protocol version (1 or 2). Defaults to 2.
+    /// The x402 protocol version (1 or 2). Defaults to 2.
     fn x402_version(&self) -> u8 {
         2
     }

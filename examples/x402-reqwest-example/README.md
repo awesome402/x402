@@ -1,12 +1,12 @@
-# awesome402-reqwest-example
+# x402-reqwest-example
 
 <div align="center">
 <table><tr><td>
-🔧 <strong>Protocol v2 Update Coming</strong> — This example is being updated for awesome402 protocol v2. Stay tuned! For v1 examples, see the <code>protocol-x402-v1</code> branch.
+🔧 <strong>Protocol v2 Update Coming</strong> — This example is being updated for x402 protocol v2. Stay tuned! For v1 examples, see the <code>protocol-x402-v1</code> branch.
 </td></tr></table>
 </div>
 
-An example client that uses [`awesome402-reqwest`](https://crates.io/crates/awesome402-reqwest) to pay for HTTP requests using the awesome402 protocol.
+An example client that uses [`x402-reqwest`](https://crates.io/crates/x402-reqwest) to pay for HTTP requests using the x402 protocol.
 
 This small demo shows how to configure a reqwest client to:
 - Interact with x402-protected endpoints
@@ -16,7 +16,7 @@ This small demo shows how to configure a reqwest client to:
 
 On startup, this example:
 - Reads your private key from env variable `PRIVATE_KEY`
-- Builds a `reqwest` client using [`reqwest-middleware`](https://crates.io/crates/reqwest-middleware) and  [`awesome402-reqwest`](https://crates.io/crates/awesome402-reqwest)
+- Builds a `reqwest` client using [`reqwest-middleware`](https://crates.io/crates/reqwest-middleware) and  [`x402-reqwest`](https://crates.io/crates/x402-reqwest)
 - Sends a request to a protected endpoint
 
 If the server responds with a 402 Payment Required, the client:
@@ -47,12 +47,12 @@ You should see the request succeed and print the server’s response.
 ## Behind the scenes
 
 This example uses:
--	[`awesome402-reqwest`](https://crates.io/crates/awesome402-reqwest) to intercept 402s and attach signed payments
+-	[`x402-reqwest`](https://crates.io/crates/x402-reqwest) to intercept 402s and attach signed payments
 -	[`alloy`](https://alloy.rs) for signing
 -	[`dotenvy`](https://crates.io/crates/dotenvy) to load the `.env` file
--	[`awesome402`](https://crates.io/crates/awesome402) for token/network definitions and amount conversion
+-	[`x402`](https://crates.io/crates/x402) for token/network definitions and amount conversion
 
 ## Related
-- [`awesome402`](https://crates.io/crates/awesome402): Common types and facilitator logic
-- [`awesome402-axum`](https://crates.io/crates/awesome402-axum): Axum server-side middleware to accept payments
-- [`awesome402-reqwest`](https://crates.io/crates/awesome402-reqwest): The crate this example is showcasing
+- [`x402`](https://crates.io/crates/x402): Common types and facilitator logic
+- [`x402-axum`](https://crates.io/crates/x402-axum): Axum server-side middleware to accept payments
+- [`x402-reqwest`](https://crates.io/crates/x402-reqwest): The crate this example is showcasing

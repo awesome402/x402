@@ -1,12 +1,12 @@
 //! HTTP endpoints implemented by the x402 **facilitator**.
 //!
-//! These are the server-side handlers for processing client-submitted awesome402 payments.
+//! These are the server-side handlers for processing client-submitted x402 payments.
 //! They include both protocol-critical endpoints (`/verify`, `/settle`) and discovery endpoints (`/supported`, etc).
 //!
-//! All payloads follow the types defined in the `awesome402` crate, and are compatible
+//! All payloads follow the types defined in the `x402` crate, and are compatible
 //! with the TypeScript and Go client SDKs.
 //!
-//! Each endpoint consumes or produces structured JSON payloads defined in `awesome402`,
+//! Each endpoint consumes or produces structured JSON payloads defined in `x402`,
 //! and is compatible with official x402 client SDKs.
 
 use axum::extract::State;
@@ -34,7 +34,7 @@ use crate::scheme::X402SchemeFacilitatorError;
 pub async fn get_verify_info() -> impl IntoResponse {
     Json(json!({
         "endpoint": "/verify",
-        "description": "POST to verify awesome402 payments",
+        "description": "POST to verify x402 payments",
         "body": {
             "paymentPayload": "PaymentPayload",
             "paymentRequirements": "PaymentRequirements",
@@ -50,7 +50,7 @@ pub async fn get_verify_info() -> impl IntoResponse {
 pub async fn get_settle_info() -> impl IntoResponse {
     Json(json!({
         "endpoint": "/settle",
-        "description": "POST to settle awesome402 payments",
+        "description": "POST to settle x402 payments",
         "body": {
             "paymentPayload": "PaymentPayload",
             "paymentRequirements": "PaymentRequirements",

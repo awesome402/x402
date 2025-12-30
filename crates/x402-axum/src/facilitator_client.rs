@@ -1,7 +1,7 @@
-//! A [`awesome402::facilitator::Facilitator`] implementation that interacts with a _remote_ x402 Facilitator over HTTP.
+//! A [`x402::facilitator::Facilitator`] implementation that interacts with a _remote_ x402 Facilitator over HTTP.
 //!
 //! This [`FacilitatorClient`] handles the `/verify` and `/settle` endpoints of a remote facilitator,
-//! and implements the [`awesome402::facilitator::Facilitator`] trait for compatibility
+//! and implements the [`x402::facilitator::Facilitator`] trait for compatibility
 //! with x402-based middleware and logic.
 //!
 //! ## Example
@@ -33,9 +33,9 @@ use reqwest::Client;
 use std::fmt::Display;
 use std::time::Duration;
 use url::Url;
-use awesome402::facilitator::Facilitator;
-use awesome402::types::{
-    SettleRequest, SettleResponse, SupportedPaymentKindsResponse, VerifyRequest, VerifyResponse,
+use x402::facilitator::Facilitator;
+use x402::proto::{
+    SettleRequest, SettleResponse, SupportedResponse, VerifyRequest, VerifyResponse,
 };
 
 #[cfg(feature = "telemetry")]
