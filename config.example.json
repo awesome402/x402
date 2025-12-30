@@ -1,0 +1,40 @@
+{
+  "port": 8080,
+  "host": "0.0.0.0",
+  "chains": {
+    "eip155:84532": {
+      "eip1559": true,
+      "flashblocks": true,
+      "signers": ["$EVM_PRIVATE_KEY"],
+      "rpc": [
+        {
+          "http": "https://sepolia.base.org",
+          "rate_limit": 50
+        }
+      ]
+    },
+    "solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1wcaWoxPkrZBG": {
+      "signer": "$SOLANA_PRIVATE_KEY",
+      "rpc": "https://api.devnet.solana.com",
+      "pubsub": "wss://api.devnet.solana.com"
+    }
+  },
+  "schemes": [
+    {
+      "id": "v1-eip155-exact",
+      "chains": "eip155:*"
+    },
+    {
+      "id": "v2-eip155-exact",
+      "chains": "eip155:*"
+    },
+    {
+      "id": "v1-solana-exact",
+      "chains": "solana:*"
+    },
+    {
+      "id": "v2-solana-exact",
+      "chains": "solana:*"
+    }
+  ]
+}

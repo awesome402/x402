@@ -253,10 +253,8 @@ let blueprints = SchemeBlueprints::new().and_register(V2SolanaMyscheme);
 {
   "schemes": [
     {
-      "enabled": true,
       "id": "v2-solana-myscheme",
-      "chains": "solana:*",
-      "config": { "yourOption": "value" }
+      "chains": "solana:*"
     }
   ]
 }
@@ -264,7 +262,22 @@ let blueprints = SchemeBlueprints::new().and_register(V2SolanaMyscheme);
 
 - `id`: The scheme blueprint ID (matches `X402SchemeId::id()`)
 - `chains`: Pattern matching (`*` for all, `{a,b}` for specific chain references)
-- `config`: Passed to your `build()` method
+
+For scheme-specific configuration, you can add a `config` field:
+
+```json
+{
+  "schemes": [
+    {
+      "id": "v2-solana-myscheme",
+      "chains": "solana:*",
+      "config": { "yourCustomOption": "value" }
+    }
+  ]
+}
+```
+
+The `config` value is passed to your `build()` method as `Option<serde_json::Value>`.
 
 ## Per-Chain Custom Handlers
 
@@ -332,12 +345,24 @@ let blueprints = SchemeBlueprints::new()
 
 **Step 3: Configure in JSON**
 
-```json,ignore
+```json
 {
   "chains": {
-    "eip155:1": { ... },
-    "eip155:3": { ... },
-    "eip155:8453": { ... }
+    "eip155:1": {
+      "eip1559": true,
+      "signers": ["$EVM_PRIVATE_KEY"],
+      "rpc": [{"http": "https://eth.llamarpc.com"}]
+    },
+    "eip155:3": {
+      "eip1559": true,
+      "signers": ["$EVM_PRIVATE_KEY"],
+      "rpc": [{"http": "https://ropsten.infura.io"}]
+    },
+    "eip155:8453": {
+      "eip1559": true,
+      "signers": ["$EVM_PRIVATE_KEY"],
+      "rpc": [{"http": "https://mainnet.base.org"}]
+    }
   },
   "schemes": [
     {
@@ -346,8 +371,7 @@ let blueprints = SchemeBlueprints::new()
     },
     {
       "id": "v1-eip155-exact-custom",
-      "chains": "eip155:3",
-      "config": { "customOption": "value" }
+      "chains": "eip155:3"
     }
   ]
 }
@@ -396,4 +420,4 @@ If you want your scheme included in the default Awesome402 distribution:
 - [ ] Implement `X402SchemeFacilitator` (verify/settle/supported) for `V2SolanaMyschemeFacilitator`
 - [ ] Define concrete types for the scheme using proto v2 generics
 - [ ] Register in `SchemeBlueprints`
-- [ ] Configure in `config.json` with appropriate `id` and `chains` pattern, and update `config.json.example`
+- [ ] Configure in `config.json` with appropriate `id` and `chains` pattern, and optionally update `config.example.json`

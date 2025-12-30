@@ -1,5 +1,7 @@
 # x402-axum
 
+> ⚠️ **IMPORTANT**: This crate is currently being refactored. It will not compile in its current state. Use the facilitator HTTP endpoints directly.
+
 Axum middleware for protecting routes with [x402 protocol](https://www.x402.org) payments.
 
 This crate provides a drop-in `tower::Layer` that intercepts incoming requests,
@@ -42,20 +44,11 @@ You can construct `PriceTag`s directly or use fluent builder helpers that simpli
 If you're integrating a custom token, define it using `TokenDeployment`. This includes token address, decimals, the network it lives on, and EIP-712 metadata (name/version):
 
 ```rust
-use x402::types::{TokenAsset, TokenDeployment, EvmAddress, TokenAssetEip712};
-use x402::network::Network;
+// Note: API is being updated, example may not compile
+use x402::networks::Network;
 
-let asset = TokenDeployment {
-    asset: TokenAsset {
-        address: "0x036CbD53842c5426634e7929541eC2318f3dCF7e".parse().unwrap(),
-        network: Network::BaseSepolia,
-    },
-    decimals: 6,
-    eip712: TokenAssetEip712 {
-        name: "MyToken".into(),
-        version: "1".into(),
-    },
-};
+// Custom token configuration
+let network = Network::BaseSepolia;
 ```
 
 **Known tokens (like USDC)**
@@ -63,7 +56,8 @@ let asset = TokenDeployment {
 For common stablecoins like USDC, you can use the convenience struct `USDCDeployment`:
 
 ```rust
-use x402::network::{Network, USDCDeployment};
+// Note: API is being updated, example may not compile
+use x402::networks::{Network, USDCDeployment};
 
 let asset = USDCDeployment::by_network(Network::BaseSepolia);
 ```

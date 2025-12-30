@@ -38,18 +38,21 @@ x402-reqwest = { version = "0.4", features = ["telemetry"] }
 
 ```rust
 use reqwest::Client;
-use x402_reqwest::{ReqwestWithPayments, ReqwestWithPaymentsBuild, MaxTokenAmountFromAmount};
+use x402_reqwest::{ReqwestWithPayments, X402Client};
 use alloy_signer_local::PrivateKeySigner;
-use x402_rs::network::{Network, USDCDeployment};
+use x402::scheme::v2_eip155_exact::client::V2Eip155ExactClient;
+use std::sync::Arc;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let signer: PrivateKeySigner = "0x...".parse()?; // never hardcode real keys!
+    
+    // Build x402 client with scheme handlers
+    let x402_client = X402Client::new()
+        .register(V2Eip155ExactClient::new(Arc::new(signer)));
 
     let client = Client::new()
-        .with_payments(signer)
-        .prefer(USDCDeployment::by_network(Network::Base))
-        .max(USDCDeployment::by_network(Network::Base).amount("1.00")?)
+        .with_payments(x402_client)
         .build();
 
     let res = client

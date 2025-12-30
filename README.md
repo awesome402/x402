@@ -2,65 +2,49 @@
 
 > Rust implementation of the x402 protocol for blockchain payments over HTTP
 
-This repository provides:
+**Awesome402** is a Rust implementation of the [x402 protocol](https://docs.cdp.coinbase.com/x402/docs/overview), enabling blockchain payments directly through HTTP using the `402 Payment Required` status code.
 
-- `x402` (core crate):
-  - Core protocol types, facilitator traits, and logic for on-chain payment verification and settlement
-  - Facilitator binary - production-grade HTTP server to verify and settle payments
-- [`x402-axum`](./crates/x402-axum) - Axum middleware for accepting payments
-- [`x402-reqwest`](./crates/x402-reqwest) - Wrapper for reqwest for transparent payments
-- [`x402-axum-example`](./examples/x402-axum-example) - Example of `x402-axum` usage
-- [`x402-reqwest-example`](./examples/x402-reqwest-example) - Example of `x402-reqwest` usage
+The protocol enables:
+- Servers to declare payment requirements for specific routes
+- Clients to send cryptographically signed payment payloads
+- Facilitators to verify and settle payments on-chain
 
-## About Awesome402
+## Features
 
-**Awesome402** is a Rust implementation of the [x402 protocol](https://docs.cdp.coinbase.com/x402/docs/overview), a proposed standard for making blockchain payments directly through HTTP using native `402 Payment Required` status code.
+### Payment-Gated Routes (Axum)
 
-Servers declare payment requirements for specific routes. Clients send cryptographically signed payment payloads. Facilitators verify and settle payments on-chain.
+> ⚠️ **Note**: The `x402-axum` middleware is currently being refactored. For now, call the facilitator HTTP endpoints directly from your Axum handlers.
 
-## Getting Started
-
-### Run facilitator
-
-```shell
-docker run -v $(pwd)/config.json:/app/config.json -p 8080:8080 ghcr.io/x402/x402-facilitator
-```
-
-Or build locally:
-```shell
-docker build -t x402 .
-docker run -v $(pwd)/config.json:/app/config.json -p 8080:8080 x402
-```
-
-See the [Facilitator](#facilitator) section below for full usage details
-
-### Protect Axum Routes
-
-Use `x402-axum` to gate your routes behind on-chain payments:
+Protect your Axum routes with on-chain payments:
 
 ```rust
-let x402 = X402Middleware::try_from("https://x402.org/facilitator/").unwrap();
+use x402_axum::{X402Middleware, IntoPriceTag};
+use x402::network::{Network, USDCDeployment};
+
+let x402 = X402Middleware::try_from("https://facilitator.example.com/").unwrap();
 let usdc = USDCDeployment::by_network(Network::BaseSepolia);
 
-let app = Router::new().route("/paid-content", get(handler).layer( 
+let app = Router::new().route(
+    "/paid-content",
+    get(handler).layer(
         x402.with_price_tag(usdc.amount("0.025").pay_to("0xYourAddress").unwrap())
     ),
 );
 ```
 
-See [`x402-axum` crate docs](./crates/x402-axum/README.md).
+See [crates/x402-axum](./crates/x402-axum/README.md) for details.
 
-### Send x402 payments
+### Send Payments (Reqwest)
 
-Use `x402-reqwest` to send payments:
+Use `x402-reqwest` to automatically handle payment flows in your HTTP client:
 
 ```rust
-let signer: PrivateKeySigner = "0x...".parse()?; // never hardcode real keys!
+use x402_reqwest::{ReqwestWithPayments, X402Client};
+use alloy_signer_local::PrivateKeySigner;
 
+let signer: PrivateKeySigner = "0x...".parse()?;
 let client = reqwest::Client::new()
-    .with_payments(signer)
-    .prefer(USDCDeployment::by_network(Network::Base))
-    .max(USDCDeployment::by_network(Network::Base).amount("1.00")?)
+    .with_payments(X402Client::new().register(signer))
     .build();
 
 let res = client
@@ -69,29 +53,62 @@ let res = client
     .await?;
 ```
 
-See [`x402-reqwest` crate docs](./crates/x402-reqwest/README.md).
+See [crates/x402-reqwest](./crates/x402-reqwest/README.md) for details.
+
+## Installation
+
+### Using Docker (Recommended)
+
+Pull the pre-built image:
+
+```shell
+docker pull ghcr.io/awesome402/x402:latest
+docker run -d \
+  -v $(pwd)/config.json:/app/config.json \
+  -p 8080:8080 \
+  ghcr.io/awesome402/x402:latest --config /app/config.json
 ```
 
-## Facilitator
+Or build from source:
 
-The `x402` crate (this repo) provides a runnable facilitator binary for **Awesome402**. The _Facilitator_ role simplifies adoption of Awesome402 by handling:
-- **Payment verification**: Confirming that client-submitted payment payloads match the declared requirements.
-- **Payment settlement**: Submitting validated payments to the blockchain and monitoring their confirmation.
+```shell
+docker build -t x402 .
+docker run -d \
+  -v $(pwd)/config.json:/app/config.json \
+  -p 8080:8080 \
+  x402 --config /app/config.json
+```
 
-By using a Facilitator, servers (sellers) do not need to:
-- Connect directly to a blockchain.
-- Implement complex cryptographic or blockchain-specific payment logic.
+> ⚠️ **Docker Note**: Set `"host": "0.0.0.0"` in your config for external access (not `127.0.0.1`)
 
-Instead, they can rely on the Facilitator to perform verification and settlement, reducing operational overhead and accelerating Awesome402 adoption.
-The Facilitator **never holds user funds**. It acts solely as a stateless verification and execution layer for signed payment payloads.
+With environment variables:
 
-For a detailed overview of the x402 payment flow and Facilitator role, see the [x402 protocol documentation](https://docs.cdp.coinbase.com/x402/docs/overview).
+```shell
+docker run -d \
+  -v $(pwd)/config.json:/app/config.json \
+  -e EVM_PRIVATE_KEY=0x... \
+  -e SOLANA_PRIVATE_KEY=... \
+  -p 8080:8080 \
+  ghcr.io/awesome402/x402:latest --config /app/config.json
+```
 
-### Usage
+### From Source
 
-#### 1. Create a configuration file
+Prerequisites: Rust 1.80+
 
-Create a `config.json` file with your chain and scheme configuration:
+```shell
+# Build the facilitator
+cargo build --bin x402
+
+# Run with config
+cargo run --bin x402 -- --config config.json
+```
+
+> 💡 **Tip**: Use `--bin x402` to skip middleware crates that are being refactored
+
+## Configuration
+
+The facilitator reads configuration from a JSON file. Create a `config.json`:
 
 ```json
 {
@@ -117,194 +134,105 @@ Create a `config.json` file with your chain and scheme configuration:
   },
   "schemes": [
     {
-      "slug": "v1:eip155:exact",
+      "id": "v1-eip155-exact",
       "chains": "eip155:*"
     },
     {
-      "slug": "v2:eip155:exact",
+      "id": "v2-eip155-exact",
       "chains": "eip155:*"
     },
     {
-      "slug": "v1:solana:exact",
+      "id": "v1-solana-exact",
       "chains": "solana:*"
     },
     {
-      "slug": "v2:solana:exact",
+      "id": "v2-solana-exact",
       "chains": "solana:*"
     }
   ]
 }
 ```
 
-**Configuration structure:**
+### Configuration Structure
 
-- **`chains`**: A map of CAIP-2 chain identifiers to chain-specific configuration
-  - EVM chains (`eip155:*`): Configure `signers` (array of private keys), `rpc` endpoints, and optional `eip1559`/`flashblocks` flags
-  - Solana chains (`solana:*`): Configure `signer` (single private key), `rpc` endpoint, and optional `pubsub` endpoint
-- **`schemes`**: List of payment schemes to enable
-  - `slug`: Scheme identifier in format `v{version}:{namespace}:{name}` (e.g., `v2:eip155:exact`)
-  - `chains`: Chain pattern to match (e.g., `eip155:*` for all EVM chains, `eip155:84532` for specific chain)
+- **`port`**: HTTP server port (default: 8080)
+- **`host`**: Bind address (`0.0.0.0` for Docker, `127.0.0.1` for local)
+- **`chains`**: Map of CAIP-2 chain identifiers to chain configuration
+  - **EVM chains** (`eip155:*`): Configure `signers`, `rpc` endpoints, `eip1559`, `flashblocks`
+  - **Solana chains** (`solana:*`): Configure `signer`, `rpc`, `pubsub`
+- **`schemes`**: Payment schemes to enable
+  - `id`: Format `v{version}-{namespace}-{name}` (e.g., `v2-eip155-exact`)
+  - `chains`: Pattern like `eip155:*` or specific chain like `eip155:84532`
 
-**Environment variable references:**
+### Environment Variables
 
-Private keys can reference environment variables using `$VAR` or `${VAR}` syntax:
-```json
-"signers": ["$EVM_PRIVATE_KEY"]
-```
-
-Then set the environment variable:
-```shell
-export EVM_PRIVATE_KEY=0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef
-```
-
-#### 2. Build and Run with Docker
-
-Prebuilt Docker images are available at [GitHub Container Registry](https://github.com/orgs/x402/packages/container/package/x402-facilitator): `ghcr.io/x402/x402-facilitator`
-
-Run the container:
-```shell
-docker run -v $(pwd)/config.json:/app/config.json -p 8080:8080 ghcr.io/x402/x402-facilitator
-```
-
-Or build a Docker image locally:
-```shell
-docker build -t x402 .
-docker run -v $(pwd)/config.json:/app/config.json -p 8080:8080 x402
-```
-
-You can also pass environment variables for private keys:
-```shell
-docker run -v $(pwd)/config.json:/app/config.json \
-  -e EVM_PRIVATE_KEY=0x... \
-  -e SOLANA_PRIVATE_KEY=... \
-  -p 8080:8080 ghcr.io/x402/x402-facilitator
-```
-
-The container:
-* Exposes port `8080` (or a port you configure in `config.json`).
-* Starts on http://localhost:8080 by default.
-* Requires minimal runtime dependencies (based on `debian:bullseye-slim`).
-
-#### 3. Point your application to your Facilitator
-
-If you are building an Awesome402-powered application, update the Facilitator URL to point to your self-hosted instance.
-
-> ℹ️ **Tip:** For production deployments, ensure your Facilitator is reachable via HTTPS and protect it against public abuse.
-
-<details>
-
-
-```typescript
-import { Hono } from "hono";
-import { serve } from "@hono/node-server";
-import { paymentMiddleware } from "x402-hono";
-
-const app = new Hono();
-
-// Configure the payment middleware
-app.use(paymentMiddleware(
-  "0xYourAddress", // Your receiving wallet address
-  {
-    "/protected-route": {
-      price: "$0.10",
-      network: "base-sepolia",
-      config: {
-        description: "Access to premium content",
-      }
-    }
-  },
-  {
-    url: "http://your-validator.url/", // 👈 Your self-hosted Facilitator
-  }
-));
-
-// Implement your protected route
-app.get("/protected-route", (c) => {
-  return c.json({ message: "This content is behind a paywall" });
-});
-
-serve({
-  fetch: app.fetch,
-  port: 3000
-});
-```
-
-</details>
-
-<details>
-<summary>If you use `x402-axum`</summary>
-
-```rust
-let x402 = X402Middleware::try_from("http://your-validator.url/").unwrap();  // 👈 Your self-hosted Facilitator
-let usdc = USDCDeployment::by_network(Network::BaseSepolia);
-
-let app = Router::new().route("/paid-content", get(handler).layer( 
-        x402.with_price_tag(usdc.amount("0.025").pay_to("0xYourAddress").unwrap())
-    ),
-);
-```
-
-</details>
-
-### Configuration
-
-The service reads configuration from a JSON file (`config.json` by default) or via CLI argument `--config <path>`.
-
-#### Configuration File Structure
+Reference environment variables in your config using `$VAR` or `${VAR}`:
 
 ```json
 {
-  "port": 8080,
-  "host": "0.0.0.0",
-  "chains": { ... },
-  "schemes": [ ... ]
+  "signers": ["$EVM_PRIVATE_KEY"]
 }
 ```
 
-### Supported Networks
+Then set them:
 
-The Facilitator supports any network you configure in `config.json`. Common chain identifiers:
-
-| Network                   | CAIP-2 Chain ID                              | Notes                            |
-|:--------------------------|:---------------------------------------------|:---------------------------------|
-| Base Sepolia Testnet      | `eip155:84532`                               | Testnet, Recommended for testing |
-| Base Mainnet              | `eip155:8453`                                | Mainnet                          |
-| Ethereum Mainnet          | `eip155:1`                                   | Mainnet                          |
-| Solana Mainnet            | `solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp`    | Mainnet                          |
-| Solana Devnet             | `solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1wcaWoxPkrZBG` | Testnet, Recommended for testing |
-
-Networks are enabled by adding them to the `chains` section in your `config.json`.
-
-> ℹ️ **Tip:** For initial development and testing, you can start with Base Sepolia (`eip155:84532`) or Solana Devnet only.
-
-### Development
-
-Prerequisites:
-- Rust 1.80+
-- `cargo` and a working toolchain
-
-Build locally:
 ```shell
+export EVM_PRIVATE_KEY=0xdeadbeef...
+```
+
+### Example Configs
+
+- `config.test.json` - Local testing (host: 127.0.0.1)
+- `config.docker.json` - Docker deployments (host: 0.0.0.0)
+- `config.example.json` - Full example with all schemes
+
+## Supported Networks
+
+Configure any network in your `config.json`. Common chain identifiers:
+
+| Network              | CAIP-2 Chain ID                                       | Notes                            |
+| :------------------- | :---------------------------------------------------- | :------------------------------- |
+| Base Sepolia Testnet | `eip155:84532`                                        | Testnet, Recommended for testing |
+| Base Mainnet         | `eip155:8453`                                         | Mainnet                          |
+| Ethereum Mainnet     | `eip155:1`                                            | Mainnet                          |
+| Solana Mainnet       | `solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp`             | Mainnet                          |
+| Solana Devnet        | `solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1wcaWoxPkrZBG` | Testnet, Recommended for testing |
+
+## What is a Facilitator?
+
+The facilitator is a service that handles:
+
+- **Payment verification**: Confirms client payment payloads match declared requirements
+- **Payment settlement**: Submits validated payments to the blockchain
+
+This means servers don't need to:
+- Connect directly to blockchains
+- Implement complex cryptographic logic
+- Handle blockchain-specific payment flows
+
+The facilitator **never holds user funds**—it's a stateless verification and execution layer for signed payment payloads.
+
+For more details, see the [x402 protocol documentation](https://docs.cdp.coinbase.com/x402/docs/overview).
+
+## Development
+
+Build and test locally:
+
+```shell
+# Build all crates
 cargo build
-```
 
-Run with a config file:
-```shell
-cargo run -- --config config.json
-```
+# Run with test config
+cargo run --bin x402 -- --config config.test.json
 
-Or place `config.json` in the current directory (it will be auto-detected):
-```shell
-cargo run
+# Run tests
+cargo test
 ```
 
 ## Related Resources
 
-* [x402 Protocol Overview by Coinbase](https://docs.cdp.coinbase.com/x402/docs/overview)
-* [Facilitator Documentation by Coinbase](https://docs.cdp.coinbase.com/x402/docs/facilitator)
-
-## Contributions and feedback welcome!
-Feel free to open issues or pull requests to improve Awesome402 in the Rust ecosystem.
+- [x402 Protocol Overview](https://docs.cdp.coinbase.com/x402/docs/overview)
+- [Facilitator Documentation](https://docs.cdp.coinbase.com/x402/docs/facilitator)
 
 ## License
 

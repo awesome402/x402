@@ -1,10 +1,6 @@
 # x402-axum-example
 
-<div align="center">
-<table><tr><td>
-🔧 <strong>Protocol v2 Update Coming</strong> — This example is being updated for x402 protocol v2. Stay tuned! For v1 examples, see the <code>protocol-x402-v1</code> branch.
-</td></tr></table>
-</div>
+
 
 An example Axum server demonstrating how to protect routes using the [`x402-axum`](https://crates.io/crates/x402-axum) crate
 and enforce payments using the [x402 protocol](https://www.x402.org).
@@ -29,14 +25,16 @@ This example shows how to:
 
 ## Prerequisites
 
-- Rust 1.76+ (Rust 2024 Edition)
-- A running x402 facilitator (this example uses [https://facilitator.ukstv.me](https://facilitator.ukstv.me))
+- Rust 1.80+ (Rust 2024 Edition)
+- A running x402 facilitator (use `cargo run --bin x402 -- --config config.test.json` from the root)
 - Optional `.env` file to configure OpenTelemetry endpoint
 
 ## Try It
 
+> ⚠️ **Note**: This example currently does not compile due to middleware refactoring. Check back soon!
+
 ```bash
-git clone https://github.com/x402/x402 x402
+git clone https://github.com/awesome402/x402
 cd x402/examples/x402-axum-example
 cargo run
 ```
