@@ -270,12 +270,6 @@ The Facilitator supports any network you configure in `config.json`. Common chai
 | Base Sepolia Testnet      | `eip155:84532`                               | Testnet, Recommended for testing |
 | Base Mainnet              | `eip155:8453`                                | Mainnet                          |
 | Ethereum Mainnet          | `eip155:1`                                   | Mainnet                          |
-| Avalanche Fuji Testnet    | `eip155:43113`                               | Testnet                          |
-| Avalanche C-Chain Mainnet | `eip155:43114`                               | Mainnet                          |
-| Polygon Amoy Testnet      | `eip155:80002`                               | Testnet                          |
-| Polygon Mainnet           | `eip155:137`                                 | Mainnet                          |
-| Sei Testnet               | `eip155:713715`                              | Testnet                          |
-| Sei Mainnet               | `eip155:1329`                                | Mainnet                          |
 | Solana Mainnet            | `solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp`    | Mainnet                          |
 | Solana Devnet             | `solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1wcaWoxPkrZBG` | Testnet, Recommended for testing |
 
